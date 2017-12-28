@@ -1,14 +1,14 @@
 <template>
   <div 
     v-on:click="flip()"
-    v-bind:class="[{ card__front: cardShown },
-    'card__rank-' + normalizeRankName(rank),
-    'card__suit-' + normalizeSuitName(suit),
-    'card__position-' + positionToClassName(position)
+    v-bind:class="[{ card__front: card.shown },
+    'card__rank-' + normalizeRankName(card.rank),
+    'card__suit-' + normalizeSuitName(card.suit),
+    'card__position-' + positionToClassName(card.position)
     ]"
     class="card">
       <div class="card-front">
-          {{rank}} {{suit}}
+          {{ card.rank }} {{ card.suit }}
       </div>
       <div class="card-back">
           <div class="card-back-inner"></div>
@@ -18,12 +18,16 @@
 
 <script>
 import { Position } from './Position';
+import { mapActions } from 'vuex';
+import { getRandomDeg } from '../helpers';
 
 function positionToClassName(pos) {
     return {
         [Position.TRICK_FIRST]: 'trick-first',
         [Position.TRICK_SECOND]: 'trick-second',
         [Position.TRICK_THIRD]: 'trick-third',
+        [Position.PLAYER_FIRST]: 'player-first',
+        
     }[pos];
 }
 
@@ -46,26 +50,28 @@ function normalizeSuitName(rank) {
 
 export default {
     data: () => {
-        return {
-            cardShown: true
-        }
+        return {};
     },
     created() {
         setTimeout(() => {
-            const rand = Math.random(10) * 10 + 1;
-            this.$el.style['transform'] = `rotate(${rand}deg)`;
-            console.log();
-            
+            const rand = getRandomDeg();
+            // this.$el.style['transform'] = `rotate(${rand}deg)`;    
         })
     },
-    props: ['rank', 'suit', 'position'],
+    computed: {
+        count () {
+            return this.$store.state.count
+        }
+    },
+    props: ['card'],
     methods: {
         flip() {
-            this.cardShown = !this.cardShown;
+            this.toggleVisibility(this.card);
         },
         positionToClassName,
         normalizeRankName,
-        normalizeSuitName
+        normalizeSuitName,
+        ...mapActions(['increment', 'toggleVisibility'])
     }
 }
 </script>
@@ -75,34 +81,43 @@ export default {
     $height: $width * 1.43;
     $card-padding: 5px;
     $border-radius: 0.5vw;
+    $animation-time: 1s;
+
+    @mixin transform($top, $left) {
+        top: calc(#{$top} - #{$height / 2});
+        left: calc(#{$left} - #{$width / 2});
+    }
 
     .card {
         font-size: 1.5vw;
-        transition: ease 0.4s;
-        top: calc(50% - #{$height / 2});
-        left: calc(50% - #{$width / 2});
+        transition: ease $animation-time;
+        @include transform(50%, 50%);
         width: $width;
         height: $height;
         position: absolute;
+        border: 1px inset rgba(0,0,0, .1);
         box-shadow: 1px 1px 1px rgba(0,0,0,.1);
         border-radius: $border-radius;
     }
 
-    .card__position-trick {
-        &-first {
-            top: calc(45% - #{$height / 2});
-            left: calc(45% - #{$width / 2});
+    .card__position {
+        &-trick {
+            &-first {
+                @include transform(45%, 45%);
+            }
+            &-second {
+                @include transform(45%, 55%);
+            }
+            &-third {
+                @include transform(60%, 50%);
+            }
         }
-        &-second {
-            top: calc(45% - #{$height / 2});
-            left: calc(55% - #{$width / 2});
-        }
-        &-third {
-            top: calc(60% - #{$height / 2});
-            left: calc(50% - #{$width / 2});
+        &-player {
+            &-first {
+                @include transform(50%, -10%);
+            }
         }
     }
-
 
     .card-front, .card-back {
         width: calc(#{$width} - #{2 * $card-padding});

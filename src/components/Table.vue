@@ -3,27 +3,38 @@
     <card 
         :key="card.rank+''+card.suit" 
         v-for="card in cards" 
-        :rank="card.rank"
-        :position="card.position"
-        :suit="card.suit">
+        :card="card">
     </card>
   </div>
 </template>
 <script>
 
-import { Position } from './Position';
+import { Position } from "./Position";
+import * as _ from "lodash";
 
 export default {
-  data() {
-    return {
-      cards: [
-        {rank: 'J', suit: '♥', position: Position.TRICK_FIRST},
-        {rank: 'Q', suit: '♥', position: Position.TRICK_SECOND},
-        {rank: '9', suit: '♥', position: Position.TRICK_THIRD}
-      ]
-    }
+    computed: {
+        cards() {
+            return this.$store.state.cards;
+        }
+    },
+  created() {
+      _.chain([
+          { rank: "J", suit: "♥", position: Position.PLAYER_FIRST, shown: true },
+          { rank: "Q", suit: "♥", position: Position.TRICK_SECOND, shown: false },
+          { rank: "9", suit: "♥", position: Position.TRICK_THIRD, shown: false }
+      ])
+        .map(card => this.$store.commit('addCard', card))
+        .value();
+    
+    setTimeout(() => {
+        this.$store.dispatch('moveCard', {
+            card: 'J♥',
+            pos: Position.TRICK_FIRST
+        });
+    }, 6000);
   }
-}
+};
 </script>
 
 <style scoped>
