@@ -14,6 +14,20 @@ export default {
 #app {
   width: 100%;
   height: 100%;
-  background: #ccc;
+  background: #a1d4a1;
+}
+
+body {
+  font-family: Arial;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
 }
 </style>
