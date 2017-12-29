@@ -1,11 +1,16 @@
 <template>
   <div 
     v-on:click="flip()"
-    v-bind:class="[{ card__front: card.shown },
+    :class="[{ card__front: card.shown },
     'card__rank-' + normalizeRankName(card.rank),
     'card__suit-' + normalizeSuitName(card.suit),
     'card__position-' + positionToClassName(card.position)
     ]"
+    :style="{
+        transition: 'ease ' + $store.state.animationTimeoutMs / 1000+ 's',
+        transform: 'rotate('+ card.deg +'deg)',
+        zIndex: card.zIndex
+    }"
     class="card">
       <div class="card-front">
           {{ card.rank }} {{ card.suit }}
@@ -17,7 +22,7 @@
 </template>
 
 <script>
-import { Position } from './Position';
+import { Position, isTrickPostion } from './Position';
 import { mapActions } from 'vuex';
 import { getRandomDeg } from '../helpers';
 
@@ -26,8 +31,10 @@ function positionToClassName(pos) {
         [Position.TRICK_FIRST]: 'trick-first',
         [Position.TRICK_SECOND]: 'trick-second',
         [Position.TRICK_THIRD]: 'trick-third',
+
         [Position.PLAYER_FIRST]: 'player-first',
-        
+        [Position.PLAYER_SECOND]: 'player-second',
+        [Position.PLAYER_THIRD]: 'player-third',
     }[pos];
 }
 
@@ -44,19 +51,19 @@ function normalizeRankName(rank) {
 
 function normalizeSuitName(rank) {
     return {
-        '♥': 'heart'
+        '♥': 'heart',
+        '♦': 'diamond',
+        '♣': 'club',
+        '♠': 'spade'
     }[rank] || 'undefined';
 }
 
 export default {
     data: () => {
-        return {};
+        return {
+        };
     },
     created() {
-        setTimeout(() => {
-            const rand = getRandomDeg();
-            // this.$el.style['transform'] = `rotate(${rand}deg)`;    
-        })
     },
     computed: {
         count () {
@@ -90,7 +97,6 @@ export default {
 
     .card {
         font-size: 1.5vw;
-        transition: ease $animation-time;
         @include transform(50%, 50%);
         width: $width;
         height: $height;
@@ -98,6 +104,16 @@ export default {
         border: 1px inset rgba(0,0,0, .1);
         box-shadow: 1px 1px 1px rgba(0,0,0,.1);
         border-radius: $border-radius;
+    }
+
+    .card__suit {
+        &-heart, &-diamond {
+            color: red;
+        }
+
+        &-club, &-spade {
+            color: black;
+        }
     }
 
     .card__position {
@@ -115,6 +131,12 @@ export default {
         &-player {
             &-first {
                 @include transform(50%, -10%);
+            }
+            &-second {
+                @include transform(50%, 110%);
+            }
+            &-third {
+                @include transform(120%, 50%);
             }
         }
     }

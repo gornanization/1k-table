@@ -1,3 +1,5 @@
+import { isTrickPostion } from './components/Position';
+
 export function getRandomDeg() {
     const sign = !!Math.floor(Math.random() * 2);
     const random =  Math.ceil(Math.random() * 5);
@@ -7,6 +9,10 @@ export function getRandomDeg() {
 
 export function findCardByRandAndSuit(cards, rank, suit) {
     return cards.find((card) => rank === card.rank && suit === card.suit);
+}
+
+export function getTotalCardsInTrick(cards) {
+    return cards.filter(card => isTrickPostion(card.position)).length;
 }
 
 export function getRankAndSuitByPattern(pattern) {
