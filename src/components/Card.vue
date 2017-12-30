@@ -35,6 +35,17 @@ function positionToClassName(pos) {
         [Position.PLAYER_FIRST]: 'player-first',
         [Position.PLAYER_SECOND]: 'player-second',
         [Position.PLAYER_THIRD]: 'player-third',
+
+        [Position.WON_PLAYER_FIRST]: 'won-player-first',
+        [Position.WON_PLAYER_SECOND]: 'won-player-second',
+        [Position.WON_PLAYER_THIRD]: 'won-player-third',
+        
+        [Position.STOCK_FIRST]: 'stock-first',
+        [Position.STOCK_SECOND]: 'stock-second',
+        [Position.STOCK_THIRD]: 'stock-third',
+
+        [Position.DECK]: 'deck',
+
     }[pos];
 }
 
@@ -117,6 +128,9 @@ export default {
     }
 
     .card__position {
+        &-deck {
+            @include transform(-20%, 50%);
+        }
         &-trick {
             &-first {
                 @include transform(45%, 45%);
@@ -139,6 +153,28 @@ export default {
                 @include transform(120%, 50%);
             }
         }
+        &-won-player {
+            &-first {
+                @include transform(20%, 0%);
+            }
+            &-second {
+                @include transform(20%, 100%);
+            }
+            &-third {
+                @include transform(110%, 60%);
+            }
+        }
+        &-stock {
+            &-first {
+                @include transform(50%, 40%);
+            }
+            &-second {
+                @include transform(50%, 50%);
+            }
+            &-third {
+                @include transform(50%, 60%);
+            }
+        }        
     }
 
     .card-front, .card-back {
