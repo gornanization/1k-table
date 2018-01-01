@@ -6,11 +6,13 @@ import { isTrickPostion, Position } from './components/Position'
 import { createAnimationDelay } from './animation'
 import { performActionsOneByOne, performActionsAllInOne, delay } from "./flow";
 
-Vue.use(Vuex)
+Vue.use(Vuex);
 
 const state = {
+    pointsVisible: false,
     cards: [],
-    animationTimeoutMs: 1000
+    animationTimeoutMs: 1000,
+    pointsAnimationTimeoutMs: 114000
 }
 
 const mutations = {
@@ -45,6 +47,9 @@ const mutations = {
         const [rank, suit] = getRankAndSuitByPattern(cardPattern);
         const card = findCardByRandAndSuit(state.cards, rank, suit);
         card.position = position;
+    },
+    togglePointsVisibility(state) {
+        state.pointsVisible = !state.pointsVisible;
     }
 }
 
@@ -100,8 +105,23 @@ const actions = {
     },
     
     toggleVisibility: ({ commit }, card) => commit('toggleVisibility', card),
-    showCard: ({ commit }, card) => commit('showCard', {card})
+    showCard: ({ commit }, card) => commit('showCard', {card}),
+    togglePointsVisibility: ({ commit, state }, card) => {
+        if(state.pointsVisible) {
+            return Promise.reject();
+        }
+
+        commit('togglePointsVisibility');
+        return delayWith(state.pointsAnimationTimeoutMs, () => commit('togglePointsVisibility'));
+    }
 };
+
+function delayWith(timeout, action = () => {}) {
+    return new Promise(resolve => setTimeout(() => {
+        action();
+        resolve();   
+    }, timeout));
+}
 
 // getters are functions
 const getters = {

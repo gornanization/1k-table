@@ -1,5 +1,6 @@
 <template>
   <div class="table">
+      <points></points>
     <card 
         :key="card.rank+''+card.suit" 
         v-for="card in cards" 
@@ -62,6 +63,9 @@ const MINOR_DELAY = 600;
     function moveStockCardsToWinner() {
         store.dispatch('moveCards', { cards: ['J♥', 'Q♥', '9♣'], pos: Position.PLAYER_FIRST});
     }
+
+    setTimeout(() => store.dispatch('togglePointsVisibility'));
+
     // setTimeout(() => {
     //     performActionsOneByOne([
     //         moveCardsToStock,
@@ -72,7 +76,7 @@ const MINOR_DELAY = 600;
     // });
 
     let i =0;
-    setInterval(() => console.log(++i), 1000);
+    // setInterval(() => console.log(++i), 1000);
 
     setTimeout(() => {
         performActionsOneByOne([

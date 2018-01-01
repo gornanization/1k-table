@@ -22,3 +22,11 @@ export function getRankAndSuitByPattern(pattern) {
     const [, rank, suit] = result;
     return [rank, suit];
 }
+
+export function isBomb(pointValue) {
+    return null === pointValue;
+}
+
+export function getTotalBombsByPoints(pointValues) {
+    return _.chain(pointValues).filter(isBomb).value().length;
+}
