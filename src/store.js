@@ -10,9 +10,16 @@ Vue.use(Vuex);
 
 const state = {
     pointsVisible: false,
+    bidsVisible: false,
     cards: [],
     animationTimeoutMs: 1000,
-    pointsAnimationTimeoutMs: 114000
+    pointsAnimationTimeoutMs: 3000,
+    bid: [
+        { player: 'adam', bid: 0, pass: true },
+        { player: 'pic', bid: 0, pass: true },
+        { player: 'alan', bid: 110, pass: false },
+        { player: 'adam', bid: 100, pass: false }
+   ]
 }
 
 const mutations = {
@@ -50,6 +57,9 @@ const mutations = {
     },
     togglePointsVisibility(state) {
         state.pointsVisible = !state.pointsVisible;
+    },
+    toggleBidsVisibility(state) {
+        state.bidsVisible = !state.bidsVisible;
     }
 }
 
@@ -106,14 +116,15 @@ const actions = {
     
     toggleVisibility: ({ commit }, card) => commit('toggleVisibility', card),
     showCard: ({ commit }, card) => commit('showCard', {card}),
-    togglePointsVisibility: ({ commit, state }, card) => {
+    togglePointsVisibility: ({ commit, state }) => {
         if(state.pointsVisible) {
             return Promise.reject();
         }
 
         commit('togglePointsVisibility');
         return delayWith(state.pointsAnimationTimeoutMs, () => commit('togglePointsVisibility'));
-    }
+    },
+    toggleBidsVisibility: ({ commit }) => commit('toggleBidsVisibility')
 };
 
 function delayWith(timeout, action = () => {}) {

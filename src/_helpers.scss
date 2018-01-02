@@ -1,0 +1,31 @@
+
+$board-table-width: 50vw;
+$zIndex: 999;
+
+.board-table {
+    border-radius: 0 0 10px .7vw;
+    box-shadow: 8px 8px 12px rgba(0, 0, 0, 0.1);
+    font-size: 3vw;
+    width: $board-table-width;
+    position: absolute;
+    z-index: $zIndex;
+    background: #fff1f1;
+    padding-bottom: 2vw;
+    top: 0;
+    left: calc( (100% - #{$board-table-width}) / 2);
+
+    table {
+        border-spacing: 0;
+        width: 100%;
+    }
+
+    td {
+        border-top: 1px solid #ffffff6e;
+        width: 33%;
+    }
+
+}
+
+.hidden {
+    display: none;
+}

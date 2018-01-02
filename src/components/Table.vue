@@ -1,6 +1,7 @@
 <template>
   <div class="table">
       <points></points>
+      <bids></bids>
     <card 
         :key="card.rank+''+card.suit" 
         v-for="card in cards" 
@@ -31,13 +32,15 @@ export default {
     //     .value();
 
     _.chain([
-          { rank: "J", suit: "♥", position: Position.TRICK_FIRST, shown: true },
-          { rank: "Q", suit: "♥", position: Position.TRICK_SECOND, shown: true },
-          { rank: "9", suit: "♣", position: Position.TRICK_THIRD, shown: true }
+          { rank: "J", suit: "♥", position: Position.TRICK_FIRST, shown: false },
+          { rank: "Q", suit: "♥", position: Position.TRICK_SECOND, shown: false },
+          { rank: "9", suit: "♣", position: Position.TRICK_THIRD, shown: false }
       ])
         .map(card => this.$store.commit('addCard', card))
         .value();
 
+
+    
 const MINOR_DELAY = 600; 
     const store = this.$store;
 
@@ -63,8 +66,12 @@ const MINOR_DELAY = 600;
     function moveStockCardsToWinner() {
         store.dispatch('moveCards', { cards: ['J♥', 'Q♥', '9♣'], pos: Position.PLAYER_FIRST});
     }
+        // moveCardsToStock();
+        // store.dispatch('togglePointsVisibility')
 
-    setTimeout(() => store.dispatch('togglePointsVisibility'));
+    setTimeout(() => {
+        store.dispatch('toggleBidsVisibility');
+    });
 
     // setTimeout(() => {
     //     performActionsOneByOne([
@@ -75,24 +82,24 @@ const MINOR_DELAY = 600;
     //     ]);
     // });
 
-    let i =0;
-    // setInterval(() => console.log(++i), 1000);
+    
+    //let i =0; setInterval(() => console.log(++i), 1000);
 
-    setTimeout(() => {
-        performActionsOneByOne([
-            // () => this.$store.dispatch('moveCardToTrick', { card: 'J♥', pos: Position.TRICK_FIRST }),
-            // () => this.$store.dispatch('moveCardToTrick', { card: 'Q♥', pos: Position.TRICK_SECOND }),
-            // () => this.$store.dispatch('moveCardToTrick', { card: '9♣', pos: Position.TRICK_THIRD }),
-            () => delay(1300),
-            () => performActionsAllInOne([
-                () => this.$store.dispatch('moveCardToPlayerWonCard', { card: 'J♥', pos: Position.WON_PLAYER_SECOND }),
-                () => this.$store.dispatch('moveCardToPlayerWonCard', { card: 'Q♥', pos: Position.WON_PLAYER_SECOND }),
-                () => this.$store.dispatch('moveCardToPlayerWonCard', { card: '9♣', pos: Position.WON_PLAYER_SECOND })
-            ])
-        ]).then(() => {
-            console.log('done');
-        });
-    }, 1);
+    // setTimeout(() => {
+    //     performActionsOneByOne([
+    //         () => this.$store.dispatch('moveCardToTrick', { card: 'J♥', pos: Position.TRICK_FIRST }),
+    //         () => this.$store.dispatch('moveCardToTrick', { card: 'Q♥', pos: Position.TRICK_SECOND }),
+    //         () => this.$store.dispatch('moveCardToTrick', { card: '9♣', pos: Position.TRICK_THIRD }),
+    //         () => delay(1300),
+    //         () => performActionsAllInOne([
+    //             () => this.$store.dispatch('moveCardToPlayerWonCard', { card: 'J♥', pos: Position.WON_PLAYER_SECOND }),
+    //             () => this.$store.dispatch('moveCardToPlayerWonCard', { card: 'Q♥', pos: Position.WON_PLAYER_SECOND }),
+    //             () => this.$store.dispatch('moveCardToPlayerWonCard', { card: '9♣', pos: Position.WON_PLAYER_SECOND })
+    //         ])
+    //     ]).then(() => {
+    //         console.log('done');
+    //     });
+    // }, 1);
   }
 };
 </script>
