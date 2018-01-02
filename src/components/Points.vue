@@ -1,7 +1,7 @@
 <template>
   <div class="points"
   :class="[
-    {'points--hidden': !$store.state.pointsVisible },
+    {'hidden': !$store.state.pointsVisible },
     ]">
       <table>
           <tr class="points__players"> 
@@ -93,8 +93,7 @@ export default {
 </script>
 
 <style lang="scss">
-$points-card-width: 50vw;
-$zIndex: 999;
+@import "../helpers";
 
 .point {
     display: flex;
@@ -127,16 +126,7 @@ $zIndex: 999;
 }
 
 .points {
-    transition: ease 1s;
-    border-radius: 0 0 10px .7vw;
-    box-shadow: 8px 8px 12px rgba(0, 0, 0, 0.1);
-    font-size: 3vw;
-    width: $points-card-width;
-    position: relative;
-    z-index: $zIndex;
-    background: #fff1f1;
-    padding-bottom: 2vw;
-    left: calc( (100% - #{$points-card-width}) / 2);
+    @extend .board-table;
 
     &--hidden {
         top: -100%;
@@ -148,15 +138,6 @@ $zIndex: 999;
 
     &__players {
         color: #ccc;
-    }
-    table {
-        border-spacing: 0;
-        width: 100%;
-    }
-
-    td {
-        border-top: 1px solid #ffffff6e;
-        width: 33%;
     }
 }
 
