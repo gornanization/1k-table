@@ -14,6 +14,11 @@ const state = {
     cards: [],
     animationTimeoutMs: 1000,
     pointsAnimationTimeoutMs: 3000,
+    players: {
+        adam: [0, -220, null, 120],
+        alan: [0, 100, 60, 10],
+        pic: [0, 80, 60, 10]
+    },
     bid: [
         { player: 'adam', bid: 0, pass: true },
         { player: 'pic', bid: 0, pass: true },
