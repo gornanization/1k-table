@@ -5,7 +5,7 @@
     ]">
       <table>
           <tr class="points__players"> 
-              <td class="center" :key="key" v-for="(value, key, index) in players">
+              <td class="center" :key="key" v-for="(value, key, index) in $store.state.players">
                   {{key}} <span class="points__players__bombs">{{formatBombs(bombs[index][1])}}</span>
               </td>
           </tr>
@@ -40,47 +40,22 @@
 import { mapActions } from 'vuex';
 import * as _ from 'lodash';
 
-import { getTotalBombsByPoints } from '../helpers';
+import { getTotalBombsByPoints, parseBattlePoints } from '../helpers';
 
 export default {
     data: () => {
-        return {
-            players: {
-                adam: [0, -220, null, 120],
-                alan: [0, 100, 60, 10],
-                pic: [0, 80, 60, 10]
-            }
-        };
+        return {};
     },
     computed: {
-        bombs: function() {
-            return _.chain(this.players)
+        bombs() {
+            return _.chain(this.$store.state.players)
                 .values()
                 .map(getTotalBombsByPoints)
                 .map((totalBombs, id) => [id, totalBombs])
                 .value();
         },
-        battlesPoints: function () {
-            const parsedPoints = _.chain(this.players)
-                .values()
-                .map(playerPoints => {
-                    let total = 0;
-                    return _.chain(playerPoints)
-                        .map((point, i) => {
-                            total = total + point;
-                            if(i < playerPoints.length - 1) {
-                                const diff = playerPoints[i+1];
-                                return [i, total, diff]
-                            } else {
-                                return [i, total, 0];
-                            }
-                            
-                        })
-                        .value()
-                })
-                .value();
-            
-            return _.zip(...parsedPoints);
+        battlesPoints() {
+            return parseBattlePoints(this.$store.state.players);
         }
     },
     methods: {

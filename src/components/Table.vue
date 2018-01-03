@@ -12,6 +12,8 @@
 <script>
 
 import { Position } from "./Position";
+import { createCards, createCard } from "1k";
+import { redistributeCards, getWonCardsPositionByPlayerId, getCardsPositionByPlayerId } from "../helpers";
 import { performActionsOneByOne, performActionsAllInOne, delay } from "../flow";
 
 import * as _ from "lodash";
@@ -31,17 +33,49 @@ export default {
     //     .map(card => this.$store.commit('addCard', card))
     //     .value();
 
-    _.chain([
-          { rank: "J", suit: "♥", position: Position.TRICK_FIRST, shown: false },
-          { rank: "Q", suit: "♥", position: Position.TRICK_SECOND, shown: false },
-          { rank: "9", suit: "♣", position: Position.TRICK_THIRD, shown: false }
-      ])
-        .map(card => this.$store.commit('addCard', card))
-        .value();
+
+const initState = {
+            settings: {
+                permitBombOnBarrel: true,
+                maxBombs: 2,
+                barrelPointsLimit: 880
+            },
+            phase: 'TRICK_IN_PROGRESS',
+            players: [
+                { id: 'adam', battlePoints: [120, null] },
+                { id: 'alan', battlePoints: [0, 60] },
+                { id: 'pic', battlePoints: [0, 60] }
+            ],
+            deck: [],
+            stock: [],
+            bid: [
+                { player: 'alan', bid: 0, pass: true },
+                { player: 'adam', bid: 0, pass: true },
+                { player: 'pic', bid: 100, pass: false }
+            ],
+            cards: {
+                'adam': createCards(['9♥', '10♥', 'J♥', 'Q♥', 'K♥', 'A♥', '9♠']), // 7 cards
+                'alan': createCards(['10♦', 'J♦', 'Q♦', 'K♦', 'A♦', 'J♠']), // 6 cards
+                'pic':  createCards(['10♣', 'J♣', 'Q♣', 'K♣', 'A♣', 'A♠']), // 6 cards
+            },
+            battle: {
+                trumpAnnouncements: [],
+                leadPlayer: 'alan',
+                trickCards: createCards(['9♦', '9♣']),
+                wonCards: {
+                    adam: [],
+                    pic: [], 
+                    alan: createCards(['K♠','Q♠', '10♠']) // 3 cards
+                }
+            }
+        };
+
+    const cardsList = redistributeCards(initState);
 
 
-    
-const MINOR_DELAY = 600; 
+    _.each(cardsList, card => this.$store.commit('addCard', card));
+
+    const MINOR_DELAY = 600; 
     const store = this.$store;
 
     //moving cards to stock
@@ -70,7 +104,7 @@ const MINOR_DELAY = 600;
         // store.dispatch('togglePointsVisibility')
 
     setTimeout(() => {
-        store.dispatch('toggleBidsVisibility');
+        store.dispatch('togglePointsVisibility');
     });
 
     // setTimeout(() => {
