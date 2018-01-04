@@ -3,6 +3,7 @@
   :class="[
     {'hidden': !$store.state.pointsVisible },
     ]">
+      <div class="points__waiting-for-players center" v-if="Object.keys($store.state.players).length === 0">waiting for players</div>
       <table>
           <tr class="points__players"> 
               <td class="center" :key="key" v-for="(value, key, index) in $store.state.players">
@@ -54,6 +55,9 @@ export default {
                 .map((totalBombs, id) => [id, totalBombs])
                 .value();
         },
+        noPlayersRegistered() {
+            return Object.keys(this.battlesPoints).length === 0;
+        },
         battlesPoints() {
             return parseBattlePoints(this.$store.state.players);
         }
@@ -101,6 +105,10 @@ export default {
 }
 
 .points {
+    // &__waiting-for-players {
+        
+    // }
+
     @extend .board-table;
 
     &--hidden {

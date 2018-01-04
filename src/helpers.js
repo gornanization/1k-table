@@ -16,6 +16,10 @@ export function getTotalCardsInTrick(cards) {
     return cards.filter(card => isTrickPostion(card.position)).length;
 }
 
+export function cardToString({rank, suit}) {
+    return rank +''+ suit;
+}
+
 export function getRankAndSuitByPattern(pattern) {
     const CARD_PATTERN_REGEX = /([A|K|Q|J|9]|10)([♥|♦|♣|♠])/;
 
@@ -138,9 +142,9 @@ export function redistributeCards(state) {
 
     //stock cards
     stockCards = [
-        state.stock[0] && { ...state.stock[0], position: Position.STOCK_FIRST },
-        state.stock[1] && { ...state.stock[1], position: Position.STOCK_SECOND },
-        state.stock[2] && { ...state.stock[2], position: Position.STOCK_THIRD },
+        state.stock[0] && { ...state.stock[0], position: Position.DECK },
+        state.stock[1] && { ...state.stock[1], position: Position.DECK },
+        state.stock[2] && { ...state.stock[2], position: Position.DECK },
     ];
     
     if(state.battle) {
@@ -169,3 +173,15 @@ export function redistributeCards(state) {
     
     return [...deckCards, ...stockCards, ...trickCards, ...playerCards, ...playerWonCards];
 }
+
+export function updateStoreByInitState(initState, store) {
+    //set cardss
+    const cardsList = redistributeCards(initState);
+    _.each(cardsList, card => store.commit('addCard', card));
+    //set players
+    store.dispatch('setPlayers', initState.players);
+    //set bids
+    store.dispatch('setBids', initState.bid);
+}
+
+export function  noop() {}

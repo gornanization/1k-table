@@ -12,10 +12,12 @@
 <script>
 
 import { Position } from "./Position";
-import { createCards, createCard } from "1k";
-import { redistributeCards, getWonCardsPositionByPlayerId, getCardsPositionByPlayerId } from "../helpers";
+import { createCards, createCard, Phase, initializeGame } from "1k";
+import { noop, redistributeCards, getWonCardsPositionByPlayerId, 
+        cardToString,
+        getCardsPositionByPlayerId, updateStoreByInitState } from "../helpers";
 import { performActionsOneByOne, performActionsAllInOne, delay } from "../flow";
-
+import { MINOR_DELAY } from '../animation';
 import * as _ from "lodash";
 
 export default {
@@ -25,115 +27,128 @@ export default {
         }
     },
   created() {
-    //   _.chain([
-    //       { rank: "J", suit: "♥", position: Position.PLAYER_FIRST, shown: false },
-    //       { rank: "Q", suit: "♥", position: Position.PLAYER_SECOND, shown: false },
-    //       { rank: "9", suit: "♣", position: Position.PLAYER_THIRD, shown: false }
-    //   ])
-    //     .map(card => this.$store.commit('addCard', card))
-    //     .value();
-
-
-const initState = {
-            settings: {
-                permitBombOnBarrel: true,
-                maxBombs: 2,
-                barrelPointsLimit: 880
-            },
-            phase: 'TRICK_IN_PROGRESS',
-            players: [
-                { id: 'adam', battlePoints: [120, null] },
-                { id: 'alan', battlePoints: [0, 60] },
-                { id: 'pic', battlePoints: [0, 60] }
-            ],
-            deck: [],
-            stock: [],
-            bid: [
-                { player: 'alan', bid: 0, pass: true },
-                { player: 'adam', bid: 0, pass: true },
-                { player: 'pic', bid: 100, pass: false }
-            ],
-            cards: {
-                'adam': createCards(['9♥', '10♥', 'J♥', 'Q♥', 'K♥', 'A♥', '9♠']), // 7 cards
-                'alan': createCards(['10♦', 'J♦', 'Q♦', 'K♦', 'A♦', 'J♠']), // 6 cards
-                'pic':  createCards(['10♣', 'J♣', 'Q♣', 'K♣', 'A♣', 'A♠']), // 6 cards
-            },
-            battle: {
-                trumpAnnouncements: [],
-                leadPlayer: 'alan',
-                trickCards: createCards(['9♦', '9♣']),
-                wonCards: {
-                    adam: [],
-                    pic: [], 
-                    alan: createCards(['K♠','Q♠', '10♠']) // 3 cards
-                }
-            }
-        };
-
-    const cardsList = redistributeCards(initState);
-
-
-    _.each(cardsList, card => this.$store.commit('addCard', card));
-
-    const MINOR_DELAY = 600; 
-    const store = this.$store;
-
-    //moving cards to stock
-    function moveCardsToStock() {
-        return performActionsAllInOne([
-                () => store.dispatch('moveCard', { card: 'J♥', pos: Position.STOCK_FIRST }),
-                () => store.dispatch('moveCard', { card: 'Q♥', pos: Position.STOCK_SECOND }),
-                () => store.dispatch('moveCard', { card: '9♣', pos: Position.STOCK_THIRD })
-        ]);
-    }
-    //showing stock cards
-    function showStockCards() {
-        return performActionsOneByOne([
-            () => store.dispatch('showCard', 'J♥'),
-            () => delay(MINOR_DELAY),
-            () => store.dispatch('showCard', 'Q♥'),
-            () => delay(MINOR_DELAY),
-            () => store.dispatch('showCard', '9♣'),
-        ])
-    }
-    //moving cards to bid winner
-    function moveStockCardsToWinner() {
-        store.dispatch('moveCards', { cards: ['J♥', 'Q♥', '9♣'], pos: Position.PLAYER_FIRST});
-    }
-        // moveCardsToStock();
-        // store.dispatch('togglePointsVisibility')
-
-    setTimeout(() => {
-        store.dispatch('togglePointsVisibility');
-    });
-
-    // setTimeout(() => {
-    //     performActionsOneByOne([
-    //         moveCardsToStock,
-    //         showStockCards,
-    //         () => delay(MINOR_DELAY * 2),
-    //         moveStockCardsToWinner
-    //     ]);
-    // });
-
+      const store = this.$store;
+      const thousand = initializeGame();
+      let initialStateDawingFinished = false;
     
-    //let i =0; setInterval(() => console.log(++i), 1000);
+    // called after action is performed by game logic
+    function onActionPerfomed(action) {
+            if(action.type === "SHARE_STOCK") {
 
-    // setTimeout(() => {
-    //     performActionsOneByOne([
-    //         () => this.$store.dispatch('moveCardToTrick', { card: 'J♥', pos: Position.TRICK_FIRST }),
-    //         () => this.$store.dispatch('moveCardToTrick', { card: 'Q♥', pos: Position.TRICK_SECOND }),
-    //         () => this.$store.dispatch('moveCardToTrick', { card: '9♣', pos: Position.TRICK_THIRD }),
-    //         () => delay(1300),
-    //         () => performActionsAllInOne([
-    //             () => this.$store.dispatch('moveCardToPlayerWonCard', { card: 'J♥', pos: Position.WON_PLAYER_SECOND }),
-    //             () => this.$store.dispatch('moveCardToPlayerWonCard', { card: 'Q♥', pos: Position.WON_PLAYER_SECOND }),
-    //             () => this.$store.dispatch('moveCardToPlayerWonCard', { card: '9♣', pos: Position.WON_PLAYER_SECOND })
-    //         ])
-    //     ]).then(() => {
-    //         console.log('done');
-    //     });
-    // }, 1);
+                const opponentPos = getCardsPositionByPlayerId(
+                    thousand.getState().players, 
+                    action.targetPlayer
+                );
+                
+                performActionsOneByOne([
+                    () => store.dispatch('moveCards', {
+                        cards: [ cardToString(action.card) ],
+                        pos: opponentPos
+                    })
+                ]);                
+            }   
+    }
+
+    // called after game logic state has changed
+    function onPhaseUpdated(next, isFirst) {
+        const state = thousand.getState();
+        
+        if(isFirst && !initialStateDawingFinished) {
+            updateStoreByInitState(state, store);
+            initialStateDawingFinished = true;
+        }
+
+        const phasesHandler = {
+            [Phase.REGISTERING_PLAYERS_START]() {
+                store.commit('showPoints');
+                next();
+            },
+            [Phase.REGISTERING_PLAYERS_IN_PROGRESS]() {
+                if(isFirst) {
+                    console.log('waiting for people');
+                } else {
+                    store.dispatch('setPlayers', state.players);
+                }
+            },
+            [Phase.REGISTERING_PLAYERS_FINISHED]() {
+                performActionsAllInOne([
+                    () => delay(MINOR_DELAY * 3)
+                ]).then(() => {
+                    store.commit('hidePoints');
+                    next();
+                });
+            },
+            [Phase.DEALING_CARDS_START]() {
+                next();
+            },
+            [Phase.DEALING_CARDS_FINISHED]() {
+                _.each(redistributeCards(state, store), card => store.commit('addCard', card));
+                setTimeout(next);
+            },
+            [Phase.BIDDING_START]() {
+                const stockCards = _.map(thousand.getState().stock, cardToString);
+
+                performActionsAllInOne([
+                    () => store.dispatch('moveCardsToStock', stockCards)
+                ]).then(next);
+            },
+            [Phase.BIDDING_IN_PROGRESS]() {
+                if(isFirst) {
+                    store.commit('showBids');
+                }
+                store.dispatch('setBids', state.bid);
+            },
+            [Phase.BIDDING_FINISHED]() {
+                performActionsOneByOne([
+                    () => delay(MINOR_DELAY * 3)
+                ]).then(() => {
+                    next();
+                    store.commit('hideBids');
+                });
+            },
+            [Phase.FLIP_STOCK]() {
+                performActionsOneByOne([
+                    () => store.dispatch('showStockCards'),
+                    () => delay(MINOR_DELAY),
+                ]).then(next);
+            },
+            [Phase.ASSIGN_STOCK]() {
+                performActionsOneByOne([
+                    () => delay(MINOR_DELAY * 2),
+                    () => store.dispatch('moveStockToPlayer', {players: state.players, playerId: 'alan'}),
+                ]).then(next);
+            },
+            [Phase.SHARE_STOCK]() {}
+        };
+        console.log(state.phase, isFirst);
+        (phasesHandler[state.phase] || noop)();
+    }
+
+    thousand.events.addListener('phaseUpdated', onPhaseUpdated);
+    thousand.events.addListener('action', onActionPerfomed);
+
+    thousand.init();
+
+    performActionsOneByOne([
+        tryToPerformAction(() => thousand.registerPlayer('adam')),
+        tryToPerformAction(() => thousand.registerPlayer('alan')),
+        tryToPerformAction(() => thousand.registerPlayer('pic')),
+        tryToPerformAction(() => thousand.bid('alan', 110)),
+        tryToPerformAction(() => thousand.pass('pic')),
+        tryToPerformAction(() => thousand.pass('adam')),
+        tryToPerformAction(() => thousand.shareStock('alan', thousand.getState().cards['alan'][0], 'adam')),
+        tryToPerformAction(() => thousand.shareStock('alan', thousand.getState().cards['alan'][0], 'pic')),
+    ]);
+
+    function tryToPerformAction(actionFn) {
+        return () => new Promise(resolve => {
+            const intervalInstance = setInterval(() => {
+                if(!actionFn()) return;
+                clearInterval(intervalInstance);
+                resolve();
+            }, 500);
+        });
+    }
   }
 };
 </script>
