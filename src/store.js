@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import * as _ from 'lodash'
 import Vuex from 'vuex'
-import { findCardByRandAndSuit, getRankAndSuitByPattern, getRandomDeg, getTotalCardsInTrick } from './helpers'
-import { isTrickPostion, Position } from './components/Position'
-import { createAnimationDelay } from './animation'
+import { cardToString, findCardByRandAndSuit, getCardsPositionByPlayerId,
+    getRankAndSuitByPattern, getRandomDeg, getTotalCardsInTrick } from './helpers'
+import { isTrickPostion, isStockPostion, Position } from './components/Position'
+import { createAnimationDelay, MINOR_DELAY } from './animation'
 import { performActionsOneByOne, performActionsAllInOne, delay } from "./flow";
 
 Vue.use(Vuex);
@@ -58,13 +59,32 @@ const mutations = {
     positionCard(state, { card: cardPattern, position }) {
         const [rank, suit] = getRankAndSuitByPattern(cardPattern);
         const card = findCardByRandAndSuit(state.cards, rank, suit);
+        console.log(card.position, position, 'to!!!!!!!');
         card.position = position;
     },
     togglePointsVisibility(state) {
         state.pointsVisible = !state.pointsVisible;
     },
+    showPoints(state) {
+        state.pointsVisible = true;
+    },
+    hidePoints(state) {
+        state.pointsVisible = false;
+    },
     toggleBidsVisibility(state) {
         state.bidsVisible = !state.bidsVisible;
+    },
+    showBids(state) {
+        state.bidsVisible = true;
+    },
+    hideBids(state) {
+        state.bidsVisible = false;
+    },
+    setPlayers(state, players) {
+        state.players = players;
+    },
+    setBids(state, bids) {
+        state.bid = bids;
     }
 }
 
@@ -75,6 +95,17 @@ const actions = {
                 commit('hideCard', { card });
             })
             .value()
+    },
+    setPlayers: ({ commit, state }, players) => {
+        const parsedPlayers = _.reduce(players, (players, player) => {
+            players[player.id] = player.battlePoints;
+            return players;
+        }, {});
+        
+        commit('setPlayers', parsedPlayers);
+    },
+    setBids: ({ commit }, bids) => {
+        commit('setBids', [...bids]);
     },
     moveCardToTrick: ({ commit, state }, { card, pos: targetPosition }) => {
         commit('rotateCard', { card, deg: getRandomDeg() });
@@ -93,6 +124,7 @@ const actions = {
         return new Promise(resolve => setTimeout(resolve, state.animationTimeoutMs));
     },
     moveCards: ({ commit, state }, { cards, pos: targetPosition }) => {
+        
         _.chain(cards)
             .map(card => {
                 commit('rotateCard', { card, deg: 0 });
@@ -102,6 +134,30 @@ const actions = {
             .value();
         
         return new Promise(resolve => setTimeout(resolve, state.animationTimeoutMs));
+    },
+    showStockCards({ dispatch, state }) {
+        const cards = _.filter(state.cards, ({position}) => isStockPostion(position));
+        const [firstStockCard, secondStockCard, thirdStockCard] = cards;
+        return performActionsOneByOne([
+            () => dispatch('showCard', cardToString(firstStockCard)),
+            () => delay(MINOR_DELAY),
+            () => dispatch('showCard', cardToString(secondStockCard)),
+            () => delay(MINOR_DELAY),
+            () => dispatch('showCard', cardToString(thirdStockCard)),
+        ]);
+    },
+    moveCardsToStock({ dispatch, state }, [firstStockCard, secondStockCard, thirdStockCard]) {
+        return performActionsAllInOne([
+            () => dispatch('moveCards', {
+                cards: [firstStockCard], pos: Position.STOCK_FIRST
+            }),
+            () => dispatch('moveCards', {
+                cards: [secondStockCard], pos: Position.STOCK_SECOND
+            }),
+            () => dispatch('moveCards', {
+                cards: [thirdStockCard], pos: Position.STOCK_THIRD
+            })
+        ]);
     },
     moveCardToPlayerWonCard: ({ commit, state }, { card, pos: targetPosition }) => {
         const deg = {
@@ -118,9 +174,18 @@ const actions = {
 
         return new Promise(resolve => setTimeout(resolve, state.animationTimeoutMs));
     },
-    
+    moveStockToPlayer({dispatch, state}, {players, playerId}) {
+        const cards = _.filter(state.cards, ({position}) => isStockPostion(position)).map(cardToString);
+        
+        const targetPos = getCardsPositionByPlayerId(players, playerId);
+
+        return dispatch('moveCards', { cards, pos: targetPos });
+    },
     toggleVisibility: ({ commit }, card) => commit('toggleVisibility', card),
-    showCard: ({ commit }, card) => commit('showCard', {card}),
+    showCard: ({ commit }, card) => {
+        commit('showCard', {card});
+        return Promise.resolve();   
+    },
     togglePointsVisibility: ({ commit, state }) => {
         if(state.pointsVisible) {
             return Promise.reject();

@@ -28,3 +28,11 @@ export function isTrickPostion(pos) {
         Position.TRICK_THIRD
     ], pos);
 }
+
+export function isStockPostion(pos) {
+    return _.includes([
+        Position.STOCK_FIRST,
+        Position.STOCK_SECOND,
+        Position.STOCK_THIRD
+    ], pos);
+}
