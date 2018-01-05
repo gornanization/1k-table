@@ -2,4 +2,4 @@ export function createAnimationDelay(percent, timeoutMs) {
     return percent / 100 * timeoutMs;
 }
 
-export const MINOR_DELAY = 500; 
+export const MINOR_DELAY = 100; 

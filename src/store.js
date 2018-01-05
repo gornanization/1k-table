@@ -59,7 +59,6 @@ const mutations = {
     positionCard(state, { card: cardPattern, position }) {
         const [rank, suit] = getRankAndSuitByPattern(cardPattern);
         const card = findCardByRandAndSuit(state.cards, rank, suit);
-        console.log(card.position, position, 'to!!!!!!!');
         card.position = position;
     },
     togglePointsVisibility(state) {
@@ -173,6 +172,11 @@ const actions = {
         commit('positionCard', { card, position: targetPosition });
 
         return new Promise(resolve => setTimeout(resolve, state.animationTimeoutMs));
+    },
+    moveCardsToPlayerWonCard: ({ dispatch , state }, { cards, pos }) => {
+        return performActionsAllInOne([
+            ...cards.map(card => () => dispatch('moveCardToPlayerWonCard', { card, pos }))
+        ]);
     },
     moveStockToPlayer({dispatch, state}, {players, playerId}) {
         const cards = _.filter(state.cards, ({position}) => isStockPostion(position)).map(cardToString);

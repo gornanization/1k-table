@@ -12,10 +12,10 @@
 <script>
 
 import { Position } from "./Position";
-import { createCards, createCard, Phase, initializeGame } from "1k";
+import { createCards, createCard, Phase, initializeGame, getNextTurn, getTrickWinner } from "1k";
 import { noop, redistributeCards, getWonCardsPositionByPlayerId, 
         cardToString,
-        getCardsPositionByPlayerId, updateStoreByInitState } from "../helpers";
+        getCardsPositionByPlayerId, updateStoreByInitState, getTrickCardPositionByPlayerId } from "../helpers";
 import { performActionsOneByOne, performActionsAllInOne, delay } from "../flow";
 import { MINOR_DELAY } from '../animation';
 import * as _ from "lodash";
@@ -28,25 +28,83 @@ export default {
     },
   created() {
       const store = this.$store;
-      const thousand = initializeGame();
+      
       let initialStateDawingFinished = false;
     
-    // called after action is performed by game logic
-    function onActionPerfomed(action) {
-            if(action.type === "SHARE_STOCK") {
+    const initState = {
+            settings: {
+                permitBombOnBarrel: true,
+                maxBombs: 2,
+                barrelPointsLimit: 880
+            },
+            phase: Phase.BATTLE_START,
+            players: [
+                { id: 'adam', battlePoints: [120, null] },
+                { id: 'alan', battlePoints: [0, 60] },
+                { id: 'pic', battlePoints: [0, 60] }
+            ],
+            deck: [],
+            stock: [],
+            bid: [
+                { player: 'alan', bid: 0, pass: true },
+                { player: 'adam', bid: 0, pass: true },
+                { player: 'pic', bid: 100, pass: false }
+            ],
+            cards: {
+                'adam': createCards(['9♥', '10♥', 'J♥', 'Q♥', 'K♥', 'A♥', '9♠', '10♠']),
+                'alan': createCards(['9♦', '10♦', 'J♦', 'Q♦', 'K♦', 'A♦', 'J♠', 'Q♠']),
+                'pic':  createCards(['9♣', '10♣', 'J♣', 'Q♣', 'K♣', 'A♣', 'K♠', 'A♠'])
+            },
+            battle: {
+                trumpAnnouncements: [],
+                leadPlayer: 'pic',
+                trickCards: [],
+                wonCards: {
+                    pic: [],
+                    adam: [],
+                    alan: []
+                }
+            }
+        };
 
-                const opponentPos = getCardsPositionByPlayerId(
-                    thousand.getState().players, 
-                    action.targetPlayer
-                );
-                
-                performActionsOneByOne([
-                    () => store.dispatch('moveCards', {
-                        cards: [ cardToString(action.card) ],
-                        pos: opponentPos
-                    })
-                ]);                
-            }   
+    const thousand = initializeGame(initState);
+
+    thousand.events.addListener('phaseUpdated', onPhaseUpdated);
+    thousand.events.addListener('action', onActionPerfomed);
+
+    thousand.init();
+
+    performActionsOneByOne([
+        tryToPerformAction(() => thousand.throwCard(thousand.getState().cards['pic'][0], 'pic')),
+        tryToPerformAction(() => thousand.throwCard(thousand.getState().cards['adam'][0], 'adam')),
+        tryToPerformAction(() => thousand.throwCard(thousand.getState().cards['alan'][0], 'alan')),
+    ]);
+
+    // called after action is performed by game logic
+    function onActionPerfomed(action, next) {
+        const state = thousand.getState();
+        console.log(action, state);
+
+        const actionHandlers = {
+            SHARE_STOCK: () => performActionsOneByOne([
+                () => store.dispatch('moveCards', {
+                    cards: [ cardToString(action.card) ],
+                    pos: getCardsPositionByPlayerId(state.players, action.targetPlayer)
+                })
+            ]),
+            THROW_CARD: () => performActionsOneByOne([
+                () => store.dispatch('moveCardToTrick', {
+                    card: cardToString(action.card),
+                    pos: getTrickCardPositionByPlayerId(state.players, action.player)
+                })
+            ])
+        };
+
+        if(actionHandlers[action.type]) {
+            actionHandlers[action.type]().then(next);
+        } else {
+            next();
+        }
     }
 
     // called after game logic state has changed
@@ -118,27 +176,44 @@ export default {
                     () => store.dispatch('moveStockToPlayer', {players: state.players, playerId: 'alan'}),
                 ]).then(next);
             },
-            [Phase.SHARE_STOCK]() {}
+            [Phase.SHARE_STOCK]() {
+
+            },
+            [Phase.BATTLE_START]() {
+                next();
+            },
+            [Phase.TRICK_START]() {
+                next();
+            },
+            [Phase.TRICK_IN_PROGRESS]() {
+            },
+            [Phase.TRICK_FINISHED]() {
+                console.log('trick winner', getTrickWinner(state), state.battle.trickCards.map(cardToString));
+                performActionsOneByOne([
+                    () => delay(MINOR_DELAY * 3),
+                    () => store.dispatch('moveCardsToPlayerWonCard', {
+                        cards: state.battle.trickCards.map(cardToString), 
+                        pos: getCardsPositionByPlayerId(state.players, getTrickWinner(state))
+                    })
+                ]).then(next);
+            },
         };
         console.log(state.phase, isFirst);
         (phasesHandler[state.phase] || noop)();
     }
+    // performActionsOneByOne([
+    //     tryToPerformAction(() => thousand.registerPlayer('adam')),
+    //     tryToPerformAction(() => thousand.registerPlayer('alan')),
+    //     tryToPerformAction(() => thousand.registerPlayer('pic')),
+    //     tryToPerformAction(() => thousand.bid('alan', 110)),
+    //     tryToPerformAction(() => thousand.pass('pic')),
+    //     tryToPerformAction(() => thousand.pass('adam')),
+    //     tryToPerformAction(() => thousand.shareStock('alan', thousand.getState().cards['alan'][0], 'adam')),
+    //     tryToPerformAction(() => thousand.shareStock('alan', thousand.getState().cards['alan'][0], 'pic')),
+    //     tryToPerformAction(() => thousand.throwCard(thousand.getState().cards['alan'][0], 'alan')),
+    //     tryToPerformAction(() => thousand.throwCard(thousand.getState().cards['pic'][0], 'pic')),
+    // ]);
 
-    thousand.events.addListener('phaseUpdated', onPhaseUpdated);
-    thousand.events.addListener('action', onActionPerfomed);
-
-    thousand.init();
-
-    performActionsOneByOne([
-        tryToPerformAction(() => thousand.registerPlayer('adam')),
-        tryToPerformAction(() => thousand.registerPlayer('alan')),
-        tryToPerformAction(() => thousand.registerPlayer('pic')),
-        tryToPerformAction(() => thousand.bid('alan', 110)),
-        tryToPerformAction(() => thousand.pass('pic')),
-        tryToPerformAction(() => thousand.pass('adam')),
-        tryToPerformAction(() => thousand.shareStock('alan', thousand.getState().cards['alan'][0], 'adam')),
-        tryToPerformAction(() => thousand.shareStock('alan', thousand.getState().cards['alan'][0], 'pic')),
-    ]);
 
     function tryToPerformAction(actionFn) {
         return () => new Promise(resolve => {
@@ -146,7 +221,7 @@ export default {
                 if(!actionFn()) return;
                 clearInterval(intervalInstance);
                 resolve();
-            }, 500);
+            }, 100);
         });
     }
   }
