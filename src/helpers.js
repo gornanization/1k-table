@@ -1,4 +1,5 @@
 import { isTrickPostion, Position } from './components/Position';
+import { Phase } from '1k';
 import * as _ from 'lodash';
 
 export function getRandomDeg() {
@@ -36,16 +37,15 @@ export function getTotalBombsByPoints(pointValues) {
     return _.chain(pointValues).filter(isBomb).value().length;
 }
 
-export function parseBattlePoints(battlePoints) {
-    const parsedPoints = _.chain(battlePoints)
-                .values()
-                .map(playerPoints => {
+export function parseBattlePoints(players) {
+    const parsedPoints = _.chain(players)
+                .map(player => {
                     let total = 0;
-                    return _.chain(playerPoints)
+                    return _.chain(player.battlePoints)
                         .map((point, i) => {
                             total = total + point;
-                            if(i < playerPoints.length - 1) {
-                                const diff = playerPoints[i+1];
+                            if(i < player.battlePoints.length - 1) {
+                                const diff = player.battlePoints[i+1];
                                 return [i, total, diff]
                             } else {
                                 return [i, total, 0];
@@ -55,7 +55,6 @@ export function parseBattlePoints(battlePoints) {
                         .value()
                 })
                 .value();
-            
     return _.zip(...parsedPoints);
 }
 
@@ -95,7 +94,8 @@ export function getTrickCardPositionByPlayerId(players, playerId) {
 }
 
 export function parseCardWithPosition(players, playerId, handler) {
-    return ({rank, suit}) => {
+    return (card) => {
+        const [rank, suit] = getRankAndSuitByPattern(card);
         return {
             rank, suit, position: handler(players, playerId)
         };
@@ -118,6 +118,16 @@ export function showCard(card) {
     return card;
 }
 
+export function tryToPerformAction(actionFn) {
+    return () => new Promise(resolve => {
+        const intervalInstance = setInterval(() => {
+            if (!actionFn()) return;
+            clearInterval(intervalInstance);
+            resolve();
+        }, 100);
+    });
+}
+
 export function redistributeCards(state) {
 
     let playerCards = [];
@@ -127,26 +137,26 @@ export function redistributeCards(state) {
     let stockCards = [];
 
     const { players } = state;
-
     //manage player cards
     if(state.cards) {
         playerCards = _.chain(state.cards)
-            .map((cards, playerId) => 
-                _.map(cards, parseCardWithPosition(players, playerId, getCardsPositionByPlayerId))
-            )
+            .map((cards, playerId) => _.map(cards, parseCardWithPosition(players, playerId, getCardsPositionByPlayerId)))
             .value();
     }
-
     //deck cards
-    deckCards = _.chain(state.deck).map(({suit, rank}) => ({ suit, rank, position: Position.DECK }));
+    deckCards = _.chain(state.deck).map((card) => {
+        const [rank, suit] = getRankAndSuitByPattern(card);
+        return { suit, rank, position: Position.DECK };
+    });
 
     //stock cards
-    stockCards = [
-        state.stock[0] && { ...state.stock[0], position: Position.DECK },
-        state.stock[1] && { ...state.stock[1], position: Position.DECK },
-        state.stock[2] && { ...state.stock[2], position: Position.DECK },
-    ];
-    
+    const stockPositions = [Position.STOCK_FIRST, Position.STOCK_SECOND, Position.STOCK_THIRD];
+    stockCards = _.chain(state.stock)
+        .map(getRankAndSuitByPattern)
+        .map(([rank, suit], i) => ({ rank, suit, position: stockPositions[i] }))
+        .value();
+
+    //battle cards
     if(state.battle) {
         playerWonCards = _.chain(state.battle.wonCards)
             .map((cards, playerId) => 
@@ -161,7 +171,8 @@ export function redistributeCards(state) {
             getNextTurn(players, getNextTurn(players, trickLeadPlayer)),
         ];
 
-        trickCards = _.map(state.battle.trickCards, ({rank, suit}, index) => {
+        trickCards = _.map(state.battle.trickCards, (cardPattern, index) => {
+            const [rank, suit] = getRankAndSuitByPattern(cardPattern);
             return {rank, suit, position: getTrickCardPositionByPlayerId(players, trickOrder[index])}
         });
     }
@@ -176,12 +187,19 @@ export function redistributeCards(state) {
 
 export function updateStoreByInitState(initState, store) {
     //set cardss
-    const cardsList = redistributeCards(initState);
-    _.each(cardsList, card => store.commit('addCard', card));
+    _.each(redistributeCards(initState), card => store.commit('addCard', card));
     //set players
     store.dispatch('setPlayers', initState.players);
     //set bids
     store.dispatch('setBids', initState.bid);
+
+    const phaseHandlers = {
+        [Phase.REGISTERING_PLAYERS_IN_PROGRESS]() {
+            store.commit('showPoints');
+        },
+    };
+
+    phaseHandlers[initState.phase] && phaseHandlers[initState.phase]();
 }
 
 export function  noop() {}

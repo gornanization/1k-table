@@ -8,7 +8,6 @@ export function performActionsAllInOne(actions) {
     return Promise.all(_.map(actions, action => action()));
 }
 
-
 export function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
