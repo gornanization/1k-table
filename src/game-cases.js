@@ -165,11 +165,7 @@ export const cases = {
             }
         },
         actions(thousand) {
-            performActionsOneByOne([
-                // tryToPerformAction(() => thousand.throwCard('9♣', 'pic')),
-                // tryToPerformAction(() => thousand.throwCard('9♥', 'adam')),
-                // tryToPerformAction(() => thousand.throwCard('9♦', 'alan')),
-            ]);
+            performActionsOneByOne([]);
         }
     },
     TRICK_IN_PROGRESS_3_CARDS_LAST_TRICK: {
@@ -214,9 +210,7 @@ export const cases = {
         },
         actions(thousand) {
             performActionsOneByOne([
-                // tryToPerformAction(() => thousand.throwCard('9♣', 'pic')),
-                // tryToPerformAction(() => thousand.throwCard('9♥', 'adam')),
-                // tryToPerformAction(() => thousand.throwCard('9♦', 'alan')),
+                tryToPerformAction(() => thousand.pass('alan')),
             ]);
         }
     }
