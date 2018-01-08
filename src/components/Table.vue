@@ -29,9 +29,7 @@ export default {
         gameCase.actions(thousand);
     }
 
-    setTimeout(() => {
-        reproduceGameCase(cases.TRICK_IN_PROGRESS_3_CARDS_LAST_TRICK);
-    }, 7000)
+    reproduceGameCase(cases.TRICK_IN_PROGRESS_3_CARDS_LAST_TRICK);
     // reproduceGameCase(cases.TRICK_START);
   }
 };
