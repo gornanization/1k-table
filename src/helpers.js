@@ -1,5 +1,5 @@
 import { isTrickPostion, Position } from './components/Position';
-import { Phase } from '1k';
+import { Phase, createDeck } from '1k';
 import * as _ from 'lodash';
 
 export function getRandomDeg() {
@@ -182,7 +182,16 @@ export function redistributeCards(state) {
     trickCards = _.chain(trickCards).map(showCard).value();
     stockCards = _.chain(stockCards).compact().map(hideCard).value();
     
-    return [...deckCards, ...stockCards, ...trickCards, ...playerCards, ...playerWonCards];
+    const cards = [...deckCards, ...stockCards, ...trickCards, ...playerCards, ...playerWonCards];
+    if(cards.length === 0) {
+        return _.chain(createDeck())
+            .map((card) => {
+                const [rank, suit] = getRankAndSuitByPattern(card);
+                return { suit, rank, position: Position.DECK };
+            })
+            .value();
+    }
+    return cards;
 }
 
 export function updateStoreByInitState(initState, store) {
@@ -198,7 +207,7 @@ export function updateStoreByInitState(initState, store) {
             store.commit('showPoints');
         },
     };
-
+    
     phaseHandlers[initState.phase] && phaseHandlers[initState.phase]();
 }
 

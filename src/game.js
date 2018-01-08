@@ -2,7 +2,7 @@ import { Position } from "./components/Position";
 import { Phase, initializeGame, getNextTurn, getTrickWinner } from "1k";
 import { noop, redistributeCards, getWonCardsPositionByPlayerId, 
         cardToString,
-        getCardsPositionByPlayerId, updateStoreByInitState, getTrickCardPositionByPlayerId } from "./helpers";
+        getCardsPositionByPlayerId, updateStoreByInitState, getTrickCardPositionByPlayerId, findCardByRandAndSuit } from "./helpers";
 import { performActionsOneByOne, performActionsAllInOne, delay } from "./flow";
 import { MINOR_DELAY } from './animation';
 import * as _ from "lodash";
@@ -78,13 +78,21 @@ export function initializeTable(initState, store) {
                 next();
             },
             [Phase.DEALING_CARDS_FINISHED]() {
-                _.each(redistributeCards(state, store), card => store.commit('addCard', card));
-                setTimeout(next);
+                // store.commit('setCards');
+                performActionsOneByOne([
+                    () => delay(MINOR_DELAY),
+                    () => { 
+                        const cards = redistributeCards(state, store);
+                        _.each(cards, ({rank, suit, position}) => {
+                            const tableStoreCard = findCardByRandAndSuit(store.getters.cards, rank, suit);
+                            tableStoreCard.position = position;
+                        })
+                        return Promise.resolve();
+                    },
+                ]).then(next);
             },
             [Phase.BIDDING_START]() {
-                performActionsAllInOne([
-                    () => store.dispatch('moveCardsToStock', state.stock)
-                ]).then(next);
+                next();
             },
             [Phase.BIDDING_IN_PROGRESS]() {
                 if (isFirst) {
@@ -137,6 +145,7 @@ export function initializeTable(initState, store) {
             },
             [Phase.BATTLE_RESULTS_ANNOUNCEMENT]() {
                 performActionsOneByOne([
+                    () => delayWith(0, () => store.dispatch('setPlayers', state.players)),
                     () => delayWith(0, () => store.commit('showPoints')),
                     () => delay(MINOR_DELAY * 3),
                     () => delayWith(0, () => store.commit('hidePoints')),

@@ -19,6 +19,7 @@ export default {
 
 body {
   font-family: Arial;
+   overflow:hidden;
 }
 
 * {

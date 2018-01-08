@@ -1,6 +1,5 @@
 <template>
   <div class="table">
-      {{$store.state.pointsVisible}}
       <points></points>
       <bids></bids>
     <card 
@@ -30,7 +29,10 @@ export default {
         gameCase.actions(thousand);
     }
 
-    reproduceGameCase(cases.TRICK_IN_PROGRESS_3_CARDS_LAST_TRICK);
+    setTimeout(() => {
+        reproduceGameCase(cases.TRICK_IN_PROGRESS_3_CARDS_LAST_TRICK);
+    }, 7000)
+    // reproduceGameCase(cases.TRICK_START);
   }
 };
 </script>
