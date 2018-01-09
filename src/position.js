@@ -17,9 +17,8 @@ export const Position = {
 
     STOCK_FIRST: 'STOCK_FIRST',
     STOCK_SECOND: 'STOCK_SECOND',
-    STOCK_THIRD: 'STOCK_THIRD',
+    STOCK_THIRD: 'STOCK_THIRD'
 };
-
 
 export function isTrickPostion(pos) {
     return _.includes([

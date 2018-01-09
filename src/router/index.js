@@ -6,19 +6,19 @@ import Points from '@/components/Points'
 import Bids from '@/components/Bids'
 import BidRow from '@/components/BidRow'
 
-Vue.use(Router);
+Vue.use(Router)
 
-Vue.component('card', Card);
-Vue.component('points', Points);
-Vue.component('bids', Bids);
-Vue.component('bid-row', BidRow);
+Vue.component('card', Card)
+Vue.component('points', Points)
+Vue.component('bids', Bids)
+Vue.component('bid-row', BidRow)
 
 export default new Router({
-  routes: [
-    {
-      path: '/',
-      name: 'Table',
-      component: Table
-    }
-  ]
-});
+    routes: [
+        {
+            path: '/',
+            name: 'Table',
+            component: Table
+        }
+    ]
+})
