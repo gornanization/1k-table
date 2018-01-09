@@ -1,13 +1,11 @@
 <template>
   <div class="points"
-  :class="[
-    {'hidden': !$store.state.pointsVisible },
-    ]">
+  :class="[{'hidden': !$store.state.pointsVisible }]">
       <div class="points__waiting-for-players center" v-if="Object.keys($store.state.players).length === 0">waiting for players</div>
       <table>
           <tr class="points__players"> 
-              <td class="center" :key="key" v-for="(value, key, index) in $store.state.players">
-                  {{key}} <span class="points__players__bombs">{{formatBombs(bombs[index][1])}}</span>
+              <td class="center" :key="player.id" v-for="(player, index) in $store.state.players">
+                  {{player.id}} <span class="points__players__bombs">{{ formatBombs(bombs[index]) }}</span>
               </td>
           </tr>
             <tr :key="index" v-for="(battlePoints, index) in battlesPoints">
@@ -44,15 +42,11 @@ import * as _ from 'lodash';
 import { getTotalBombsByPoints, parseBattlePoints } from '../helpers';
 
 export default {
-    data: () => {
-        return {};
-    },
     computed: {
         bombs() {
             return _.chain(this.$store.state.players)
-                .values()
+                .map('battlePoints')
                 .map(getTotalBombsByPoints)
-                .map((totalBombs, id) => [id, totalBombs])
                 .value();
         },
         noPlayersRegistered() {
