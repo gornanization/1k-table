@@ -9,11 +9,12 @@
     </card>
   </div>
 </template>
-<script>
 
+<script>
 import { initializeTable } from '../game';
+import { shuffleCards } from '../helpers';
 import { cases } from '../game-cases';
-import * as _ from "lodash";
+import { createDeck } from '1k';
 
 export default {
     computed: {
@@ -21,17 +22,22 @@ export default {
             return this.$store.state.cards;
         }
     },
-  created() {
-    const tableStore = this.$store;
+    created() {
+        const tableStore = this.$store;
 
-    function reproduceGameCase(gameCase) {
-        const thousand = initializeTable(gameCase.state, tableStore);
-        gameCase.actions(thousand);
+        shuffleCards(createDeck(), cards => console.log(cards));
+
+        reproduceGameCase(cases.TRICK_IN_PROGRESS_3_CARDS_LAST_TRICK);
+
+        function reproduceGameCase(gameCase) {
+            const thousand = initializeTable(gameCase.state, tableStore);
+
+            thousand.setCustomShufflingMethod(shuffleCards);
+            thousand.init();
+
+            gameCase.actions(thousand);
+        }
     }
-
-    reproduceGameCase(cases.TRICK_IN_PROGRESS_3_CARDS_LAST_TRICK);
-    // reproduceGameCase(cases.TRICK_START);
-  }
 };
 </script>
 

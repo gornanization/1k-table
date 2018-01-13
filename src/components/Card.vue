@@ -22,30 +22,24 @@
 </template>
 
 <script>
-import { Position, isTrickPostion } from './Position';
+import { Position } from '../position';
 import { mapActions } from 'vuex';
-import { getRandomDeg } from '../helpers';
 
 function positionToClassName(pos) {
     return {
         [Position.TRICK_FIRST]: 'trick-first',
         [Position.TRICK_SECOND]: 'trick-second',
         [Position.TRICK_THIRD]: 'trick-third',
-
         [Position.PLAYER_FIRST]: 'player-first',
         [Position.PLAYER_SECOND]: 'player-second',
         [Position.PLAYER_THIRD]: 'player-third',
-
         [Position.WON_PLAYER_FIRST]: 'won-player-first',
         [Position.WON_PLAYER_SECOND]: 'won-player-second',
         [Position.WON_PLAYER_THIRD]: 'won-player-third',
-        
         [Position.STOCK_FIRST]: 'stock-first',
         [Position.STOCK_SECOND]: 'stock-second',
         [Position.STOCK_THIRD]: 'stock-third',
-
-        [Position.DECK]: 'deck',
-
+        [Position.DECK]: 'deck'
     }[pos];
 }
 
@@ -71,8 +65,7 @@ function normalizeSuitName(rank) {
 
 export default {
     data: () => {
-        return {
-        };
+        return {};
     },
     created() {
     },
