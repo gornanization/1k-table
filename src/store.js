@@ -10,50 +10,60 @@ import { performActionsOneByOne, performActionsAllInOne } from './flow';
 Vue.use(Vuex);
 
 const state = {
+    room: null,
+    game: {
+        cards: [],
+        players: {
+            adam: [0, -220, null, 120],
+            alan: [0, 100, 60, 10],
+            pic: [0, 80, 60, 10]
+        },
+        bid: [
+            { player: 'adam', bid: 0, pass: true },
+            { player: 'pic', bid: 0, pass: true },
+            { player: 'alan', bid: 110, pass: false },
+            { player: 'adam', bid: 100, pass: false }
+        ]
+    },
     pointsVisible: false,
     bidsVisible: false,
-    cards: [],
     animationTimeoutMs: 1000,
-    pointsAnimationTimeoutMs: 3000,
-    players: {
-        adam: [0, -220, null, 120],
-        alan: [0, 100, 60, 10],
-        pic: [0, 80, 60, 10]
-    },
-    bid: [
-        { player: 'adam', bid: 0, pass: true },
-        { player: 'pic', bid: 0, pass: true },
-        { player: 'alan', bid: 110, pass: false },
-        { player: 'adam', bid: 100, pass: false }
-    ]
+    pointsAnimationTimeoutMs: 3000
 };
 
 const mutations = {
     addCard(state, { rank, suit, position, shown, deg, zIndex }) {
-        state.cards.push({ rank, suit, position, shown, deg: deg || 0, zIndex: zIndex || 0 });
+        state.game.cards.push({ rank, suit, position, shown, deg: deg || 0, zIndex: zIndex || 0 })
+    },
+    
+    updateRoom(state, room) {
+        state.room = room
+    },
+    updateGame(state, game) {
+        state.game = game
     },
     toggleVisibility(state, { rank, suit }) {
-        const foundCard = findCardByRandAndSuit(state.cards, rank, suit);
+        const foundCard = findCardByRandAndSuit(state.game.cards, rank, suit);
         foundCard.shown = !foundCard.shown;
     },
     changeCardOrder(state, { card: cardPattern, zIndex }) {
         const [rank, suit] = getRankAndSuitByPattern(cardPattern);
-        const card = findCardByRandAndSuit(state.cards, rank, suit);
+        const card = findCardByRandAndSuit(state.game.cards, rank, suit);
         card.zIndex = zIndex;
     },
     hideCard(state, { card: cardPattern }) {
         const [rank, suit] = getRankAndSuitByPattern(cardPattern);
-        const card = findCardByRandAndSuit(state.cards, rank, suit);
+        const card = findCardByRandAndSuit(state.game.cards, rank, suit);
         card.shown = false;
     },
     showCard(state, { card: cardPattern }) {
         const [rank, suit] = getRankAndSuitByPattern(cardPattern);
-        const card = findCardByRandAndSuit(state.cards, rank, suit);
+        const card = findCardByRandAndSuit(state.game.cards, rank, suit);
         card.shown = true;
     },
     positionCard(state, { card: cardPattern, position }) {
         const [rank, suit] = getRankAndSuitByPattern(cardPattern);
-        const card = findCardByRandAndSuit(state.cards, rank, suit);
+        const card = findCardByRandAndSuit(state.game.cards, rank, suit);
         card.position = position;
     },
     togglePointsVisibility(state) {
@@ -75,13 +85,13 @@ const mutations = {
         state.bidsVisible = false;
     },
     setPlayers(state, players) {
-        state.players = players;
+        state.game.players = players;
     },
     setBids(state, bids) {
-        state.bid = bids;
+        state.game.bid = bids;
     },
     setCards(state, cards = []) {
-        state.cards = cards;
+        state.game.cards = cards;
     }
 }
 
@@ -129,7 +139,7 @@ const actions = {
         return delayWith(state.animationTimeoutMs);
     },
     moveCardsToDeck: ({ commit, state, getters }) => {
-        _.chain(state.cards)
+        _.chain(state.game.cards)
             .map(cardToString)
             .map(card => {
                 commit('changeCardOrder', { card, zIndex: 0 });
@@ -139,7 +149,7 @@ const actions = {
         return delayWith(state.animationTimeoutMs);
     },
     moveCardToTrick: ({ commit, state }, { card, pos: targetPosition }) => {
-        commit('changeCardOrder', { card, zIndex: getTotalCardsInTrick(state.cards, targetPosition) + 1 });
+        commit('changeCardOrder', { card, zIndex: getTotalCardsInTrick(state.game.cards, targetPosition) + 1 });
 
         setTimeout(() => commit('showCard', { card }), createAnimationDelay(80, state.animationTimeoutMs));
         commit('positionCard', { card, position: targetPosition });
@@ -188,7 +198,7 @@ const actions = {
         ]);
     },
     moveStockToPlayer({dispatch, state}, {players, playerId}) {
-        const cards = _.filter(state.cards, ({position}) => isStockPostion(position)).map(cardToString);
+        const cards = _.filter(state.game.cards, ({position}) => isStockPostion(position)).map(cardToString);
         const targetPos = getCardsPositionByPlayerId(players, playerId);
 
         return dispatch('moveCards', { cards, pos: targetPos });
@@ -211,7 +221,7 @@ const actions = {
 
 const getters = {
     cards: state => state.cards,
-    stockCards: state => _.filter(state.cards, ({position}) => isStockPostion(position))
+    stockCards: state => _.filter(state.game.cards, ({position}) => isStockPostion(position))
 }
 
 export default new Vuex.Store({

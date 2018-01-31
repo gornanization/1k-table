@@ -114,7 +114,7 @@ export function initializeTable (initState, store) {
                 performActionsOneByOne([
                     () => delayWith(MINOR_DELAY * 3),
                     () => store.dispatch('moveCardsToPlayerWonCard', {
-                        cards: state.battle.trickCards,
+                        cards: state.trickCards,
                         pos: getWonCardsPositionByPlayerId(state.players, getTrickWinner(state))
                     })
                 ]).then(next);
@@ -132,6 +132,7 @@ export function initializeTable (initState, store) {
             }
         };
         console.log(state.phase, isFirst);
+        console.log(state);
         (phasesHandler[state.phase] || (() => console.log(state.phase, 'not handled...')))();
     }
 }

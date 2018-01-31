@@ -1,7 +1,7 @@
 <template>
   <div class="points"
   :class="[{'hidden': !$store.state.pointsVisible }]">
-      <div class="points__waiting-for-players center" v-if="Object.keys($store.state.players).length === 0">waiting for players</div>
+      <div class="points__waiting-for-players center" v-if="Object.keys(game.players).length === 0">waiting for players</div>
       <table>
           <tr class="points__players"> 
               <td class="center" :key="player.id" v-for="(player, index) in $store.state.players">
@@ -43,8 +43,11 @@ import { getTotalBombsByPoints, parseBattlePoints } from '../helpers';
 
 export default {
     computed: {
+        game() {
+            return this.$store.state.game
+        },
         bombs() {
-            return _.chain(this.$store.state.players)
+            return _.chain(this.game.players)
                 .map('battlePoints')
                 .map(getTotalBombsByPoints)
                 .value();
@@ -53,7 +56,7 @@ export default {
             return Object.keys(this.battlesPoints).length === 0;
         },
         battlesPoints() {
-            return parseBattlePoints(this.$store.state.players);
+            return parseBattlePoints(this.game.players);
         }
     },
     methods: {

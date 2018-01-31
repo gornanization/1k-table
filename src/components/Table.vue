@@ -1,5 +1,6 @@
 <template>
   <div class="table">
+      {{game}}!
       <points></points>
       <bids></bids>
     <card 
@@ -11,34 +12,66 @@
 </template>
 
 <script>
-import { initializeTable } from '../game';
-import { shuffleCards } from '../helpers';
-import { cases } from '../game-cases';
-import { createDeck } from '1k';
+import { initializeTable } from '../game'
+import { shuffleCards } from '../helpers'
+import { cases } from '../game-cases'
+import { firebase } from '../firebase'
+import { createDeck } from '1k'
+import store from '../store'
 
 export default {
     computed: {
+        room() {
+            return this.$store.state.room
+        },
+        game() {
+            return this.$store.state.game
+        },
         cards() {
-            return this.$store.state.cards;
+            return this.game.cards
         }
     },
     created() {
-        const tableStore = this.$store;
+        const defaultState = {
+            settings: {
+                permitBombOnBarrel: true,
+                maxBombs: 2,
+                barrelPointsLimit: 880
+            },
+            phase: 'REGISTERING_PLAYERS_START',
+            players: [],
+            deck: [],
+            stock: [],
+            bid: [],
+            cards: {},
+            battle: null
+        };
+        const tableStore = this.$store
 
-        shuffleCards(createDeck(), cards => console.log(cards));
+        const roomId = this.$router.currentRoute.params.id
+        const gameRef = firebase.database().ref(`game/${roomId}`);
 
-        reproduceGameCase(cases.TRICK_IN_PROGRESS_3_CARDS_LAST_TRICK);
+        gameRef.once('value', (snapshot) => {
+            const game = snapshot.val()
+            let loadedState = game ? Object.assign({}, defaultState, game) : undefined
 
-        function reproduceGameCase(gameCase) {
-            const thousand = initializeTable(gameCase.state, tableStore);
+            const thousand = initializeTable(loadedState, tableStore)
+            thousand.setCustomShufflingMethod(shuffleCards)
+            thousand.init()
+            thousand.events.addListener('phaseUpdated', (next) => {
+                gameRef.set(thousand.getState())
+                next()
+            });
 
-            thousand.setCustomShufflingMethod(shuffleCards);
-            thousand.init();
-
-            gameCase.actions(thousand);
-        }
+            if(!game) {
+                console.log('initialising')
+                console.log(this.room);
+            } else {
+                console.log('continuing')
+            }
+        })
     }
-};
+}
 </script>
 
 <style scoped>
