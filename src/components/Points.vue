@@ -1,25 +1,21 @@
 <template>
-  <div class="points"
-  :class="[{'hidden': !$store.state.pointsVisible }]">
-      <div class="points__waiting-for-players center" v-if="Object.keys(game.players).length === 0">waiting for players</div>
-      <table>
-          <tr class="points__players"> 
-              <td class="center" :key="player.id" v-for="(player, index) in $store.state.players">
-                  {{player.id}} <span class="points__players__bombs">{{ formatBombs(bombs[index]) }}</span>
-              </td>
-          </tr>
+    <div class="points" :class="[{'hidden': !$store.state.pointsVisible }]">
+        <div class="points__waiting-for-players center" v-if="Object.keys(game.players).length === 0">waiting for players</div>
+        <table>
+            <tr class="points__players">
+                <td class="center" :key="player.id" v-for="(player, index) in $store.state.players">
+                    {{player.id}}
+                    <span class="points__players__bombs">{{ formatBombs(bombs[index]) }}</span>
+                </td>
+            </tr>
             <tr :key="index" v-for="(battlePoints, index) in battlesPoints">
                 <td v-for="userBattlePoint in battlePoints">
                     <div class="point">
-                        <div  class="point__total"> {{userBattlePoint[1]}}</div>
-                        <div
-                            class="point__addition"
-                            v-if="userBattlePoint[2] !== 0"
-                            :class="[ 
-                                {'point__addition--plus': (userBattlePoint[2] && userBattlePoint[2] > 0) },
-                                {'point__addition--minus': (userBattlePoint[2] && userBattlePoint[2] < 0) }
-                            ]"
-                        >
+                        <div class="point__total"> {{userBattlePoint[1]}}</div>
+                        <div class="point__addition" v-if="userBattlePoint[2] !== 0" :class="[ 
+                                    {'point__addition--plus': (userBattlePoint[2] && userBattlePoint[2] > 0) },
+                                    {'point__addition--minus': (userBattlePoint[2] && userBattlePoint[2] < 0) }
+                                ]">
                             <span v-if="userBattlePoint[2] === null">
                                 *
                             </span>
@@ -30,9 +26,9 @@
                     </div>
                 </td>
             </tr>
-      </table>
-      
-  </div>
+        </table>
+
+    </div>
 </template>
 
 <script>
@@ -97,21 +93,18 @@ export default {
         }
     }
 }
+
 .center {
     text-align: center;
 }
 
 .points {
-    // &__waiting-for-players {
-        
-    // }
-
     @extend .board-table;
 
     &--hidden {
         top: -100%;
     }
-    
+
     &__players__bombs {
         font-size: 1.5vw
     }
@@ -120,6 +113,4 @@ export default {
         color: #ccc;
     }
 }
-
-
 </style>

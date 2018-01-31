@@ -132,7 +132,6 @@ export function initializeTable (initState, store) {
             }
         };
         console.log(state.phase, isFirst);
-        console.log(state);
         (phasesHandler[state.phase] || (() => console.log(state.phase, 'not handled...')))();
     }
 }
