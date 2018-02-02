@@ -18,7 +18,7 @@
     export default {
         computed: {
             bids() {
-                return _.chain(this.$store.state.bid)
+                return _.chain(this.$store.state.game.bid)
                         .slice(0, TOTAL_BIDS_DISPLAYED)
                         .reverse()
                         .value();

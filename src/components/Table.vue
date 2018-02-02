@@ -27,6 +27,7 @@ export default {
         }
     },
     beforeRouteEnter(to, from, next) {
+        console.log('TABLE');
         const roomName = to.params.id;
         const refName = 'rooms/' + roomName;
 
@@ -45,7 +46,8 @@ export default {
 
 
         const redirectToLobbyOrGame = _.once(function(room) {
-            if (room.ready) {
+            console.log('TABLE DONE');
+            if (room.first && room.second && room.third) {
                 next(vm => vm.redirectToGame())
             } else {
                 next(vm => vm.redirectToLobby())

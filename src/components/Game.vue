@@ -1,13 +1,10 @@
 <template>
-  <div class="table">
-      <points></points>
-      <bids></bids>
-    <card 
-        :key="card.rank+''+card.suit" 
-        v-for="card in cards" 
-        :card="card">
-    </card>
-  </div>
+    <div class="table">
+        <points></points>
+        <bids></bids>
+        <card :key="card.rank+''+card.suit" v-for="card in cards" :card="card">
+        </card>
+    </div>
 </template>
 
 <script>
@@ -17,6 +14,8 @@ import { cases } from '../game-cases'
 import { firebase } from '../firebase'
 import { createDeck } from '1k'
 import store from '../store'
+import { performActionsOneByOne } from '../flow'
+import { tryToPerformAction } from '../helpers'
 
 export default {
     computed: {
@@ -44,7 +43,7 @@ export default {
             bid: [],
             cards: {},
             battle: null
-        };
+        }
         const tableStore = this.$store
 
         const roomId = this.$router.currentRoute.params.id
@@ -54,24 +53,37 @@ export default {
             const game = snapshot.val()
             let loadedState = game ? Object.assign({}, defaultState, game) : undefined
 
+            console.log('loadedState:')
+            console.log(loadedState)
+
             const thousand = initializeTable(loadedState, tableStore)
             thousand.setCustomShufflingMethod(shuffleCards)
             thousand.init()
 
-            thousand.events.addListener('phaseUpdated', (next) => {
+            thousand.events.addListener('phaseUpdated', () => {
+                console.log('phaseUpdated:')
+                console.log(thousand.getState())
                 gameRef.set(thousand.getState())
-                next()
-            });
+            })
 
-            if(!game) {
-                console.log('initialising')                
+            if (!game) {
+                console.log('initialising')
+                const { first, second, third } = this.room
+
+                performActionsOneByOne([
+                    tryToPerformAction(() => thousand.registerPlayer(first)),
+                    tryToPerformAction(() => thousand.registerPlayer(second)),
+                    tryToPerformAction(() => thousand.registerPlayer(third))
+                ])
             } else {
                 console.log('continuing')
+                console.log(thousand.getState())
             }
-            console.log(this.room)
+
         })
     }
 }
+
 </script>
 
 <style scoped>
