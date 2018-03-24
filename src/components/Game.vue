@@ -53,7 +53,7 @@ export default {
         gameRef.once('value', (snapshot) => {
             const game = snapshot.val()
             let loadedState = game ? Object.assign({}, defaultState, game) : undefined
-            if(loadedState.battle) {
+            if(loadedState && loadedState.battle) {
                 const battle = loadedState.battle;
 
                 battle.trumpAnnouncements = battle.trumpAnnouncements || [];
