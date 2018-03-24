@@ -18,7 +18,6 @@ export function initializeTable (initState, store) {
     // called after action is performed by game logic
     function onActionPerfomed (action, next) {
         const state = thousand.getState();
-        // console.log(action, state);
         console.log('action', action);
         const actionHandlers = {
             SHARE_STOCK: () => performActionsOneByOne([
@@ -77,7 +76,6 @@ export function initializeTable (initState, store) {
             },
             [Phase.BIDDING_START]: next,
             [Phase.BIDDING_IN_PROGRESS]() {
-                console.log('BIDDING_IN_PROGRESS', isFirst, state.bid)
                 if (isFirst) {
                     performActionsOneByOne([
                         () => store.dispatch('showBids'),
@@ -115,7 +113,7 @@ export function initializeTable (initState, store) {
                 performActionsOneByOne([
                     () => delayWith(MINOR_DELAY * 3),
                     () => store.dispatch('moveCardsToPlayerWonCard', {
-                        cards: state.trickCards,
+                        cards: state.battle.trickCards,
                         pos: getWonCardsPositionByPlayerId(state.players, getTrickWinner(state))
                     })
                 ]).then(next);
@@ -132,7 +130,6 @@ export function initializeTable (initState, store) {
                 ]).then(next);
             }
         };
-        // console.log(state.phase, isFirst);
         (phasesHandler[state.phase] || (() => console.log(state.phase, 'not handled...')))();
     }
 }

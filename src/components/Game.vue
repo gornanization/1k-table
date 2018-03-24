@@ -12,7 +12,7 @@ import { initializeTable } from '../game'
 import { shuffleCards } from '../helpers'
 import { cases } from '../game-cases'
 import { firebase } from '../firebase'
-import { createDeck } from '1k'
+import { createDeck, defaultState } from '1k'
 import store from '../store'
 import { performActionsOneByOne } from '../flow'
 import { tryToPerformAction } from '../helpers'
@@ -48,11 +48,17 @@ export default {
 
         const roomId = this.$router.currentRoute.params.id
         const gameRef = firebase.database().ref(`game/${roomId}`)
-
+        const actionsRef = firebase.database().ref(`actions/${roomId}`)
+        
         gameRef.once('value', (snapshot) => {
             const game = snapshot.val()
             let loadedState = game ? Object.assign({}, defaultState, game) : undefined
+            if(loadedState && loadedState.battle) {
+                const battle = loadedState.battle;
 
+                battle.trumpAnnouncements = battle.trumpAnnouncements || [];
+                battle.wonCards = battle.wonCards || {};
+            }
             console.log('loadedState:')
             console.log(loadedState)
 
@@ -65,6 +71,15 @@ export default {
                 console.log(thousand.getState())
                 gameRef.set(thousand.getState())
             })
+
+            actionsRef.on('child_added', function(_data) {
+                const { type, args } = _data.val();
+                _data.ref.remove();
+                if(type && args && thousand[type]) {
+                    const result = thousand[type].apply(thousand, args);
+                    console.log(type, args, result);
+                }
+            });
 
             if (!game) {
                 console.log('initialising')
@@ -79,7 +94,6 @@ export default {
                 console.log('continuing')
                 console.log(thousand.getState())
             }
-
         })
     }
 }
