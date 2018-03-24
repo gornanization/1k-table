@@ -194,6 +194,7 @@ export default {
     }
 
     .card__front {
+        opacity: 0.9;
         .card-back {
             visibility: hidden;
         }
