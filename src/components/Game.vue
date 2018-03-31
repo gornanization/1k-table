@@ -16,6 +16,28 @@ import { createDeck, defaultState } from '1k'
 import store from '../store'
 import { performActionsOneByOne } from '../flow'
 import { tryToPerformAction } from '../helpers'
+import * as _ from 'lodash';
+
+function extendStateWithDefaults(game) {
+    let loadedState = game ? Object.assign({}, defaultState, game) : undefined
+            
+            if(loadedState && loadedState.battle) {
+                const battle = loadedState.battle;
+
+                battle.trickCards = battle.trickCards || [];
+                battle.trumpAnnouncements = battle.trumpAnnouncements || [];
+                battle.wonCards = battle.wonCards || {};
+                _.each(loadedState.players, (player) => {
+                    if(!player.battlePoints) {
+                        player.battlePoints = [];
+                    }
+                    if(!battle.wonCards[player.id]) {
+                        battle.wonCards[player.id] = [];
+                    }
+                });
+            }
+    return loadedState;            
+}
 
 export default {
     computed: {
@@ -51,14 +73,10 @@ export default {
         const actionsRef = firebase.database().ref(`actions/${roomId}`)
         
         gameRef.once('value', (snapshot) => {
-            const game = snapshot.val()
-            let loadedState = game ? Object.assign({}, defaultState, game) : undefined
-            if(loadedState && loadedState.battle) {
-                const battle = loadedState.battle;
+            const game = snapshot.val();
 
-                battle.trumpAnnouncements = battle.trumpAnnouncements || [];
-                battle.wonCards = battle.wonCards || {};
-            }
+            let loadedState = extendStateWithDefaults(game)
+            
             console.log('loadedState:')
             console.log(loadedState)
 
