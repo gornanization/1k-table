@@ -128,7 +128,11 @@ export function initializeTable (initState, store) {
                     () => store.dispatch('hidePoints'),
                     () => store.dispatch('moveCardsToDeck')
                 ]).then(next);
-            }
+            },
+            [Phase.GAME_FINISHED]() {
+                store.commit('togglePointsVisibility');
+                next();
+            },
         };
         (phasesHandler[state.phase] || (() => console.log(state.phase, 'not handled...')))();
     }

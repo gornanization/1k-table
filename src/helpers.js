@@ -1,5 +1,5 @@
 import { isTrickPostion, Position } from './position';
-import { Phase, createDeck } from '1k';
+import { Phase, createDeck, defaultState } from '1k';
 import * as _ from 'lodash';
 
 export function getRandomDeg() {
@@ -55,6 +55,35 @@ export function parseBattlePoints(players) {
         })
         .value();
     return _.zip(...parsedPoints);
+}
+
+
+export function extendStateWithDefaults(game) {
+    let loadedState = game ? Object.assign({}, defaultState, game) : undefined
+            if(loadedState && !loadedState.cards) {
+                loadedState.cards = {};
+            }
+            if(loadedState && loadedState.battle) {
+                const battle = loadedState.battle;
+
+                battle.trickCards = battle.trickCards || [];
+                battle.trumpAnnouncements = battle.trumpAnnouncements || [];
+                battle.wonCards = battle.wonCards || {};
+                _.each(loadedState.players, (player) => {
+
+                    if(!loadedState.cards[player]) {
+                        loadedState.cards[player] = []
+                    }
+
+                    if(!player.battlePoints) {
+                        player.battlePoints = [];
+                    }
+                    if(!battle.wonCards[player.id]) {
+                        battle.wonCards[player.id] = [];
+                    }
+                });
+            }
+    return loadedState;            
 }
 
 export function getPlayerOrderIndex(players, playerId) {

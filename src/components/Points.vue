@@ -1,9 +1,10 @@
 <template>
+
     <div class="points" :class="[{'hidden': !$store.state.pointsVisible }]">
         <div class="points__waiting-for-players center" v-if="Object.keys(game.players).length === 0">waiting for players</div>
         <table>
             <tr class="points__players">
-                <td class="center" :key="player.id" v-for="(player, index) in $store.state.players">
+                <td class="center" :key="player.id" v-for="(player, index) in game.players">
                     {{player.id}}
                     <span class="points__players__bombs">{{ formatBombs(bombs[index]) }}</span>
                 </td>

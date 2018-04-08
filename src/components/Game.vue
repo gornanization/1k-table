@@ -15,29 +15,8 @@ import { firebase } from '../firebase'
 import { createDeck, defaultState } from '1k'
 import store from '../store'
 import { performActionsOneByOne } from '../flow'
-import { tryToPerformAction } from '../helpers'
+import { tryToPerformAction, extendStateWithDefaults } from '../helpers'
 import * as _ from 'lodash';
-
-function extendStateWithDefaults(game) {
-    let loadedState = game ? Object.assign({}, defaultState, game) : undefined
-            
-            if(loadedState && loadedState.battle) {
-                const battle = loadedState.battle;
-
-                battle.trickCards = battle.trickCards || [];
-                battle.trumpAnnouncements = battle.trumpAnnouncements || [];
-                battle.wonCards = battle.wonCards || {};
-                _.each(loadedState.players, (player) => {
-                    if(!player.battlePoints) {
-                        player.battlePoints = [];
-                    }
-                    if(!battle.wonCards[player.id]) {
-                        battle.wonCards[player.id] = [];
-                    }
-                });
-            }
-    return loadedState;            
-}
 
 export default {
     computed: {
@@ -52,25 +31,16 @@ export default {
         }
     },
     created() {
-        const defaultState = {
-            settings: {
-                permitBombOnBarrel: true,
-                maxBombs: 2,
-                barrelPointsLimit: 880
-            },
-            phase: 'REGISTERING_PLAYERS_START',
-            players: [],
-            deck: [],
-            stock: [],
-            bid: [],
-            cards: {},
-            battle: null
-        }
         const tableStore = this.$store
 
         const roomId = this.$router.currentRoute.params.id
         const gameRef = firebase.database().ref(`game/${roomId}`)
         const actionsRef = firebase.database().ref(`actions/${roomId}`)
+
+        window.update = function(state) {
+            console.log(state)
+            gameRef.set(state)
+        }
         
         gameRef.once('value', (snapshot) => {
             const game = snapshot.val();

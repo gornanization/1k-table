@@ -56,7 +56,7 @@ export default {
 
         function watchForRoomChanges() {
             const removeWatcher = firebase.database().ref(refName).on('value', (snapshot) => {
-                const room = snapshot.val();
+                const room = snapshot.val();                
                 store.commit('updateRoom', room)
                 redirectToLobbyOrGame(room)
             })
