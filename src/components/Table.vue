@@ -44,7 +44,6 @@ export default {
             }
         });
 
-
         const redirectToLobbyOrGame = _.once(function(room) {
             console.log('TABLE DONE');
             if (room.first && room.second && room.third) {
@@ -56,7 +55,7 @@ export default {
 
         function watchForRoomChanges() {
             const removeWatcher = firebase.database().ref(refName).on('value', (snapshot) => {
-                const room = snapshot.val();                
+                const room = snapshot.val();
                 store.commit('updateRoom', room)
                 redirectToLobbyOrGame(room)
             })

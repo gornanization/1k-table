@@ -1,5 +1,6 @@
 <template>
     <div class="table">
+        <logs></logs>
         <points></points>
         <bids></bids>
         <card :key="card.rank+''+card.suit" v-for="card in cards" :card="card">
@@ -12,10 +13,10 @@ import { initializeTable } from '../game'
 import { shuffleCards } from '../helpers'
 import { cases } from '../game-cases'
 import { firebase } from '../firebase'
-import { createDeck, defaultState } from '1k'
+import { createDeck, extendStateWithDefaults, Phase } from '../../../1k/dist/src/index'
 import store from '../store'
 import { performActionsOneByOne } from '../flow'
-import { tryToPerformAction, extendStateWithDefaults } from '../helpers'
+import { tryToPerformAction } from '../helpers'
 import * as _ from 'lodash';
 
 export default {
@@ -37,16 +38,16 @@ export default {
         const gameRef = firebase.database().ref(`game/${roomId}`)
         const actionsRef = firebase.database().ref(`actions/${roomId}`)
 
+        window.Phase = Phase;
         window.update = function(state) {
-            console.log(state)
             gameRef.set(state)
         }
-        
+
         gameRef.once('value', (snapshot) => {
             const game = snapshot.val();
 
             let loadedState = extendStateWithDefaults(game)
-            
+
             console.log('loadedState:')
             console.log(loadedState)
 
@@ -63,7 +64,7 @@ export default {
             actionsRef.on('child_added', function(_data) {
                 const { type, args } = _data.val();
                 _data.ref.remove();
-                if(type && args && thousand[type]) {
+                if (type && args && thousand[type]) {
                     const result = thousand[type].apply(thousand, args);
                     console.log(type, args, result);
                 }
@@ -85,7 +86,6 @@ export default {
         })
     }
 }
-
 </script>
 
 <style scoped>

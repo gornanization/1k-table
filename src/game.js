@@ -1,5 +1,5 @@
 // import { Phase, initializeGame, getTrickWinner } from '1k';
-import { Phase, initializeGame, getTrickWinner } from '../../1k/dist/src/index';
+import { Phase, initializeGame, getTrickWinner, getNextBiddingTurn, getNextTurn, getBidWinner, getNextTrickTurn } from '../../1k/dist/src/index';
 import { redistributeCards, getWonCardsPositionByPlayerId,
     delayWith, getCardsPositionByPlayerId, updateStoreByInitState, getTrickCardPositionByPlayerId } from './helpers';
 import { performActionsOneByOne } from './flow';
@@ -24,13 +24,15 @@ export function initializeTable (initState, store) {
                 () => store.dispatch('moveCards', {
                     cards: [action.card],
                     pos: getCardsPositionByPlayerId(state.players, action.targetPlayer)
-                })
+                }),
+                () => log(`${action.player} shared a card with ${action.targetPlayer}`)
             ]),
             THROW_CARD: () => performActionsOneByOne([
                 () => store.dispatch('moveCardToTrick', {
                     card: action.card,
                     pos: getTrickCardPositionByPlayerId(state.players, action.player)
-                })
+                }),
+                () => log(`${action.player} thrown a ${action.card}  card`)
             ])
         };
 
@@ -39,6 +41,11 @@ export function initializeTable (initState, store) {
         } else {
             next();
         }
+    }
+
+    function log(msg) {
+        store.dispatch('addLog', msg)
+        return Promise.resolve()
     }
 
     // called after game logic state has changed
@@ -74,8 +81,17 @@ export function initializeTable (initState, store) {
                     () => store.dispatch('changeCardsPosition', redistributeCards(state, store))
                 ]).then(next);
             },
+            [Phase.NOT_ENOUGHT_CARD_POINTS]() {
+                performActionsOneByOne([
+                    () => delayWith(MINOR_DELAY * 4),
+                    () => store.dispatch('moveCardsToDeck')
+                ]).then(next);
+            },
             [Phase.BIDDING_START]: next,
             [Phase.BIDDING_IN_PROGRESS]() {
+                const nextPlayer = getNextTurn(state.players, state.bid[0].player);
+                log(`next turn for bidding: ${nextPlayer}`)
+
                 if (isFirst) {
                     performActionsOneByOne([
                         () => store.dispatch('showBids'),
@@ -88,12 +104,17 @@ export function initializeTable (initState, store) {
                 }
             },
             [Phase.BIDDING_FINISHED]() {
+                const winnerBidding = getBidWinner(state.bid);
+                log(`${winnerBidding.player} has won a bidding with ${winnerBidding.bid} points`)
+
                 performActionsOneByOne([
                     () => delayWith(MINOR_DELAY * 3),
                     () => store.dispatch('hideBids')
                 ]).then(next);
             },
             [Phase.FLIP_STOCK]() {
+                const winnerBidding = getBidWinner(state.bid);
+                log(`${winnerBidding.player} needs to share cards...`)
                 performActionsOneByOne([
                     () => store.dispatch('showStockCards'),
                     () => delayWith(MINOR_DELAY)
@@ -105,21 +126,37 @@ export function initializeTable (initState, store) {
                     () => store.dispatch('moveStockToPlayer', { players: state.players, playerId: 'alan' })
                 ]).then(next);
             },
-            [Phase.SHARE_STOCK]: next,
+            [Phase.SHARE_STOCK]() {
+                if (isFirst) {
+                    const winnerBidding = getBidWinner(state.bid);
+                    log(`${winnerBidding.player} needs to share cards...`)
+                }
+                next();
+            },
             [Phase.BATTLE_START]: next,
             [Phase.TRICK_START]: next,
-            [Phase.TRICK_IN_PROGRESS]: next,
+            [Phase.TRICK_IN_PROGRESS]() {
+                performActionsOneByOne([
+                    () => log(`next trick turn: ${getNextTrickTurn(state)}`)
+                ]).then(next);
+            },
             [Phase.TRICK_FINISHED]() {
+                const trickWinner = getTrickWinner(state);
                 performActionsOneByOne([
                     () => delayWith(MINOR_DELAY * 3),
                     () => store.dispatch('moveCardsToPlayerWonCard', {
                         cards: state.battle.trickCards,
-                        pos: getWonCardsPositionByPlayerId(state.players, getTrickWinner(state))
-                    })
+                        pos: getWonCardsPositionByPlayerId(state.players, trickWinner)
+                    }),
+                    () => log(`${trickWinner} has won a trick!`)
                 ]).then(next);
             },
             [Phase.ASSIGN_TRICK_CARDS]: next,
-            [Phase.BATTLE_FINISHED]: next,
+            [Phase.BATTLE_FINISHED]() {
+                performActionsOneByOne([
+                    () => log('battle finished!')
+                ]).then(next);
+            },
             [Phase.BATTLE_RESULTS_ANNOUNCEMENT]() {
                 performActionsOneByOne([
                     () => store.dispatch('setPlayers', state.players),
@@ -132,7 +169,7 @@ export function initializeTable (initState, store) {
             [Phase.GAME_FINISHED]() {
                 store.commit('togglePointsVisibility');
                 next();
-            },
+            }
         };
         (phasesHandler[state.phase] || (() => console.log(state.phase, 'not handled...')))();
     }

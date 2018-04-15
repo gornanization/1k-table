@@ -57,35 +57,6 @@ export function parseBattlePoints(players) {
     return _.zip(...parsedPoints);
 }
 
-
-export function extendStateWithDefaults(game) {
-    let loadedState = game ? Object.assign({}, defaultState, game) : undefined
-            if(loadedState && !loadedState.cards) {
-                loadedState.cards = {};
-            }
-            if(loadedState && loadedState.battle) {
-                const battle = loadedState.battle;
-
-                battle.trickCards = battle.trickCards || [];
-                battle.trumpAnnouncements = battle.trumpAnnouncements || [];
-                battle.wonCards = battle.wonCards || {};
-                _.each(loadedState.players, (player) => {
-
-                    if(!loadedState.cards[player]) {
-                        loadedState.cards[player] = []
-                    }
-
-                    if(!player.battlePoints) {
-                        player.battlePoints = [];
-                    }
-                    if(!battle.wonCards[player.id]) {
-                        battle.wonCards[player.id] = [];
-                    }
-                });
-            }
-    return loadedState;            
-}
-
 export function getPlayerOrderIndex(players, playerId) {
     const playerOrder = _.map(players, 'id');
     return _.findIndex(playerOrder, _playerId => _playerId === playerId);
