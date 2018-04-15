@@ -11,10 +11,12 @@
     "e2e": "node test/e2e/runner.js",
     "test": "npm run unit && npm run e2e",
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
+    "fix": "eslint --ext .js,.vue src --fix",
     "build": "node build/build.js"
   },
   "dependencies": {
     "1k": "0.0.7",
+    "babel-runtime": "6.26.0",
     "firebase": "4.9.0",
     "lodash": "4.17.4",
     "vue": "2.5.2",

@@ -25,6 +25,7 @@ const state = {
             { player: 'adam', bid: 100, pass: false }
         ]
     },
+    logs: [],
     pointsVisible: false,
     bidsVisible: false,
     animationTimeoutMs: 1000,
@@ -35,12 +36,18 @@ const mutations = {
     addCard(state, { rank, suit, position, shown, deg, zIndex }) {
         state.game.cards.push({ rank, suit, position, shown, deg: deg || 0, zIndex: zIndex || 0 })
     },
-    
+
     updateRoom(state, room) {
         state.room = room
     },
     updateGame(state, game) {
         state.game = game
+    },
+    addLog(state, log) {
+        const logs = state.logs;
+        const lastLog = _.last(logs);
+
+        state.logs = lastLog === log ? logs : [...logs, log]
     },
     toggleVisibility(state, { rank, suit }) {
         const foundCard = findCardByRandAndSuit(state.game.cards, rank, suit);
@@ -103,6 +110,9 @@ const actions = {
     showPoints: ({ commit }) => {
         commit('showPoints');
         return Promise.resolve();
+    },
+    addLog: ({ commit }, log) => {
+        commit('addLog', log);
     },
     changeCardsPosition: ({ commit }, cards) => {
         _.each(cards, (card) => commit('positionCard', { card: cardToString(card), position: card.position }));
@@ -221,6 +231,7 @@ const actions = {
 
 const getters = {
     cards: state => state.cards,
+    logs: state => state.logs,
     stockCards: state => _.filter(state.game.cards, ({position}) => isStockPostion(position))
 }
 

@@ -44,7 +44,6 @@ export default {
             }
         });
 
-
         const redirectToLobbyOrGame = _.once(function(room) {
             console.log('TABLE DONE');
             if (room.first && room.second && room.third) {

@@ -8,6 +8,7 @@ import BidRow from '@/components/BidRow'
 import Lobby from '@/components/Lobby'
 import Game from '@/components/Game'
 import Home from '@/components/Home'
+import Logs from '@/components/Logs'
 
 Vue.use(Router)
 
@@ -18,6 +19,7 @@ Vue.component('bids', Bids)
 Vue.component('bid-row', BidRow)
 Vue.component('lobby', Lobby)
 Vue.component('home', Home)
+Vue.component('logs', Logs)
 
 export default new Router({
     routes: [

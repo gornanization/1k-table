@@ -1,5 +1,5 @@
 import { isTrickPostion, Position } from './position';
-import { Phase, createDeck } from '1k';
+import { Phase, createDeck, defaultState } from '1k';
 import * as _ from 'lodash';
 
 export function getRandomDeg() {
