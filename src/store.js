@@ -43,11 +43,11 @@ const mutations = {
     updateGame(state, game) {
         state.game = game
     },
-    addLog(state, log) {
+    addLog(state, text) {
         const logs = state.logs;
         const lastLog = _.last(logs);
 
-        state.logs = lastLog === log ? logs : [...logs, log]
+        state.logs = (lastLog && lastLog.text === text) ? logs : [...logs, { text, timestamp: Date.now()}]
     },
     toggleVisibility(state, { rank, suit }) {
         const foundCard = findCardByRandAndSuit(state.game.cards, rank, suit);

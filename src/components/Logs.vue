@@ -1,7 +1,7 @@
 <template>
     <ul class="logs">
-        <li :key="log" v-for="log in logs">
-            {{log}}
+        <li :key="log.timestamp" v-for="log in logs">
+            {{log.text}}
         </li>
     </ul>
 </template>
@@ -16,7 +16,7 @@ export default {
     name: 'Logs',
     computed: {
         logs() {
-            return _.chain(this.state.logs).uniq().slice(-NUMBER_OF_LOGS_TO_BE_PRINTED).value()
+            return _.chain(this.state.logs).slice(-NUMBER_OF_LOGS_TO_BE_PRINTED).value()
         },
         state() {
             return this.$store.state
@@ -28,5 +28,7 @@ export default {
 <style lang="scss">
 .logs {
     color: #fff;
+    position: absolute;
+    z-index: 1;
 }
 </style>
