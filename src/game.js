@@ -32,7 +32,7 @@ export function initializeTable (initState, store) {
                     card: action.card,
                     pos: getTrickCardPositionByPlayerId(state.players, action.player)
                 }),
-                () => log(`${action.player} thrown a ${action.card}  card`)
+                () => log(`${action.player} thrown a ${action.card} card`)
             ])
         };
 
@@ -126,6 +126,12 @@ export function initializeTable (initState, store) {
                     () => store.dispatch('moveStockToPlayer', { players: state.players, playerId: 'alan' })
                 ]).then(next);
             },
+            [Phase.BOMB_DECLARED] () {
+                performActionsOneByOne([
+                    () => log('A bomb has been thrown!!!'),
+                    () => store.dispatch('moveCardsToDeck')
+                ]).then(next);
+            },
             [Phase.SHARE_STOCK]() {
                 if (isFirst) {
                     const winnerBidding = getBidWinner(state.bid);
@@ -161,7 +167,7 @@ export function initializeTable (initState, store) {
                 performActionsOneByOne([
                     () => store.dispatch('setPlayers', state.players),
                     () => store.dispatch('showPoints'),
-                    () => delayWith(MINOR_DELAY * 3),
+                    () => delayWith(MINOR_DELAY * 6),
                     () => store.dispatch('hidePoints'),
                     () => store.dispatch('moveCardsToDeck')
                 ]).then(next);

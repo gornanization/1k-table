@@ -10,7 +10,7 @@
 
 <script>
 import { initializeTable } from '../game'
-import { shuffleCards } from '../helpers'
+import { shuffleCards, replaceBombCharacterWithNull, repalceBombCharacterWithString } from '../helpers'
 import { cases } from '../game-cases'
 import { firebase } from '../firebase'
 import { createDeck, extendStateWithDefaults, Phase } from '../../../1k/dist/src/index'
@@ -39,16 +39,22 @@ export default {
         const actionsRef = firebase.database().ref(`actions/${roomId}`)
 
         window.Phase = Phase;
-        window.update = function(state) {
-            gameRef.set(state)
+        window.update = sendNewGameSate
+
+        function sendNewGameSate(state) {
+            const clonedState = _.cloneDeep(state)
+            repalceBombCharacterWithString(clonedState);
+
+            gameRef.set(clonedState)
         }
 
         gameRef.once('value', (snapshot) => {
             const game = snapshot.val();
 
             let loadedState = extendStateWithDefaults(game)
-
+            
             console.log('loadedState:')
+            replaceBombCharacterWithNull(loadedState)
             console.log(loadedState)
 
             const thousand = initializeTable(loadedState, tableStore)
@@ -56,9 +62,9 @@ export default {
             thousand.init()
 
             thousand.events.addListener('phaseUpdated', () => {
-                console.log('phaseUpdated:')
-                console.log(thousand.getState())
-                gameRef.set(thousand.getState())
+                const state = thousand.getState();
+                console.log('phaseUpdated:', state)
+                sendNewGameSate(state)
             })
 
             actionsRef.on('child_added', function(_data) {

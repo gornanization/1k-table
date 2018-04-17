@@ -127,6 +127,20 @@ export function tryToPerformAction(actionFn) {
     });
 }
 
+export function repalceBombCharacterWithString(clonedState) {
+    clonedState.players = _.chain(clonedState.players).map(player => {
+        player.battlePoints = player.battlePoints.map(a => a === null ? 'null' : a)
+        return player;
+    }).value();
+}
+
+export function replaceBombCharacterWithNull(clonedState) {
+    clonedState.players = _.chain(clonedState.players).map(player => {
+        player.battlePoints = player.battlePoints.map(a => a === 'null' ? null : a)
+        return player;
+    }).value()
+}
+
 export function redistributeCards(state) {
     let playerCards = [];
     let playerWonCards = [];

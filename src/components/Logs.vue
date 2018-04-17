@@ -28,6 +28,8 @@ export default {
 <style lang="scss">
 .logs {
     color: #fff;
+    list-style: none;
+    padding: 1vw;
     position: absolute;
     z-index: 1;
 }
