@@ -1,4 +1,4 @@
-import { Phase, initializeGame, getTrickWinner, getNextTurn, getBidWinner, getNextTrickTurn } from '../../1k/dist/src/index';
+import { Phase, initializeGame, getTrickWinner, getNextTurn, getBidWinner, getNextTrickTurn } from '1k';
 import { redistributeCards, getWonCardsPositionByPlayerId,
     delayWith, getCardsPositionByPlayerId, updateStoreByInitState, getTrickCardPositionByPlayerId } from './helpers';
 import { performActionsOneByOne } from './flow';
