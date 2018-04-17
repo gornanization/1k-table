@@ -11,8 +11,6 @@
 <script>
 import { mapActions } from 'vuex'
 import * as _ from 'lodash'
-import { firebase } from '../firebase';
-import store from '../store'
 
 export default {
     name: 'Lobby',

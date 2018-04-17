@@ -10,13 +10,10 @@
 
 <script>
 import { initializeTable } from '../game'
-import { shuffleCards, replaceBombCharacterWithNull, repalceBombCharacterWithString } from '../helpers'
-import { cases } from '../game-cases'
+import { shuffleCards, tryToPerformAction, replaceBombCharacterWithNull, repalceBombCharacterWithString } from '../helpers'
 import { firebase } from '../firebase'
-import { createDeck, extendStateWithDefaults, Phase } from '../../../1k/dist/src/index'
-import store from '../store'
+import { extendStateWithDefaults, Phase } from '1k'
 import { performActionsOneByOne } from '../flow'
-import { tryToPerformAction } from '../helpers'
 import * as _ from 'lodash';
 
 export default {
@@ -52,7 +49,7 @@ export default {
             const game = snapshot.val();
 
             let loadedState = extendStateWithDefaults(game)
-            
+
             console.log('loadedState:')
             replaceBombCharacterWithNull(loadedState)
             console.log(loadedState)

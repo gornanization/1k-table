@@ -7,7 +7,6 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
 import * as _ from 'lodash';
 
 const NUMBER_OF_LOGS_TO_BE_PRINTED = 7

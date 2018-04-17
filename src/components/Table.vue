@@ -4,11 +4,7 @@
 </template>
 
 <script>
-import { initializeTable } from '../game'
-import { shuffleCards } from '../helpers'
-import { cases } from '../game-cases'
 import { firebase } from '../firebase'
-import { createDeck } from '1k'
 import * as _ from 'lodash'
 import store from '../store'
 
@@ -38,7 +34,7 @@ export default {
             } else {
                 firebase.database().ref(refName).set({
                     name: roomName
-                }, err => {
+                }, () => {
                     watchForRoomChanges()
                 });
             }
@@ -54,7 +50,7 @@ export default {
         })
 
         function watchForRoomChanges() {
-            const removeWatcher = firebase.database().ref(refName).on('value', (snapshot) => {
+            firebase.database().ref(refName).on('value', (snapshot) => {
                 const room = snapshot.val();
                 store.commit('updateRoom', room)
                 redirectToLobbyOrGame(room)
