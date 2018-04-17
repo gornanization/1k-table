@@ -28,15 +28,23 @@ const state = {
     logs: [],
     pointsVisible: false,
     bidsVisible: false,
-    animationTimeoutMs: 1000,
-    pointsAnimationTimeoutMs: 3000
+    animationTimeoutMs: 3000,
+    pointsAnimationTimeoutMs: 3000,
+    isAnimationPerforming: false
 };
 
 const mutations = {
     addCard(state, { rank, suit, position, shown, deg, zIndex }) {
         state.game.cards.push({ rank, suit, position, shown, deg: deg || 0, zIndex: zIndex || 0 })
     },
-
+    markAnimationAsStarted(state) {
+        console.log('| starting animation');
+        state.isAnimationPerforming = true
+    },
+    markAnimationAsFinished(state) {
+        console.log('| finishing animation');
+        state.isAnimationPerforming = false
+    },
     updateRoom(state, room) {
         state.room = room
     },
@@ -103,6 +111,12 @@ const mutations = {
 }
 
 const actions = {
+    markAnimationAsStarted: ({ commit }) => {
+        commit('markAnimationAsStarted')
+    },
+    markAnimationAsFinished: ({ commit }) => {
+        commit('markAnimationAsFinished')
+    },
     hidePoints: ({ commit }) => {
         commit('hidePoints');
         return Promise.resolve();
@@ -232,6 +246,7 @@ const actions = {
 const getters = {
     cards: state => state.cards,
     logs: state => state.logs,
+    isAnimationPerforming: state => state.isAnimationPerforming,
     stockCards: state => _.filter(state.game.cards, ({position}) => isStockPostion(position))
 }
 
