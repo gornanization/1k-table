@@ -10,7 +10,7 @@
 
 <script>
 import { initializeTable } from '../game'
-import { tryToPerformAction, replaceBombCharacterWithNull, repalceBombCharacterWithString } from '../helpers'
+import { tryToPerformAction, repalceBombCharacterWithString } from '../helpers'
 import { firebase } from '../firebase'
 import { extendStateWithDefaults, Phase } from '1k'
 import { performActionsOneByOne } from '../flow'
@@ -77,7 +77,6 @@ export default {
             if (loadedState) {
                 console.log('loadedState:')
                 console.log(loadedState)
-                replaceBombCharacterWithNull(loadedState)
             }
 
             this.gameInstance = initializeTable(loadedState, this.store)

@@ -130,9 +130,10 @@ export function initializeTable (initState, store) {
                 ])
             },
             [Phase.ASSIGN_STOCK]: () => {
+                const winnerBidding = getBidWinner(state.bid)
                 return performActionsOneByOne([
                     () => delayWith(MINOR_DELAY * 2),
-                    () => store.dispatch('moveStockToPlayer', { players: state.players, playerId: 'alan' })
+                    () => store.dispatch('moveStockToPlayer', { players: state.players, playerId: winnerBidding.player })
                 ])
             },
             [Phase.BOMB_DECLARED]: () => {

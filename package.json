@@ -16,7 +16,7 @@
     "postinstall": "npm run build"
   },
   "dependencies": {
-    "1k": "0.0.9",
+    "1k": "0.0.11",
     "http-server": "0.11.1",
     "babel-runtime": "6.26.0",
     "firebase": "4.9.0",

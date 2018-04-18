@@ -28,7 +28,7 @@ const state = {
     logs: [],
     pointsVisible: false,
     bidsVisible: false,
-    animationTimeoutMs: 3000,
+    animationTimeoutMs: 1000,
     pointsAnimationTimeoutMs: 3000,
     isAnimationPerforming: false
 };
