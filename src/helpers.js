@@ -1,5 +1,5 @@
 import { isTrickPostion, Position } from './position';
-import { Phase, createDeck, defaultState } from '1k';
+import { Phase, createDeck } from '1k';
 import * as _ from 'lodash';
 
 export function getRandomDeg() {
@@ -125,6 +125,13 @@ export function tryToPerformAction(actionFn) {
             resolve();
         }, 100);
     });
+}
+
+export function repalceBombCharacterWithString(clonedState) {
+    clonedState.players = _.chain(clonedState.players).map(player => {
+        player.battlePoints = player.battlePoints.map(a => a === null ? 'null' : a)
+        return player;
+    }).value();
 }
 
 export function redistributeCards(state) {

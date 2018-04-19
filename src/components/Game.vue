@@ -10,17 +10,17 @@
 
 <script>
 import { initializeTable } from '../game'
-import { shuffleCards } from '../helpers'
-import { cases } from '../game-cases'
+import { tryToPerformAction, repalceBombCharacterWithString } from '../helpers'
 import { firebase } from '../firebase'
-import { createDeck, extendStateWithDefaults, Phase } from '../../../1k/dist/src/index'
-import store from '../store'
+import { extendStateWithDefaults, Phase } from '1k'
 import { performActionsOneByOne } from '../flow'
-import { tryToPerformAction } from '../helpers'
 import * as _ from 'lodash';
 
 export default {
     computed: {
+        store() {
+            return this.$store
+        },
         room() {
             return this.$store.state.room
         },
@@ -31,57 +31,80 @@ export default {
             return this.game.cards
         }
     },
-    created() {
-        const tableStore = this.$store
-
-        const roomId = this.$router.currentRoute.params.id
-        const gameRef = firebase.database().ref(`game/${roomId}`)
-        const actionsRef = firebase.database().ref(`actions/${roomId}`)
-
-        window.Phase = Phase;
-        window.update = function(state) {
-            gameRef.set(state)
+    data() {
+        return {
+            gameRef: null,
+            gameInstance: null
         }
+    },
+    methods: {
+        setupDebugHelpers() {
+            window.Phase = Phase;
+            window.update = this.sendNewGameSate.bind(this)
+            window.getState = () => JSON.stringify(this.gameInstance.getState())
+        },
+        sendNewGameSate(state) {
+            const clonedState = _.cloneDeep(state)
+            repalceBombCharacterWithString(clonedState);
 
-        gameRef.once('value', (snapshot) => {
-            const game = snapshot.val();
+            this.gameRef.set(clonedState)
+        },
+        onActionReceived(type, args) {
+            console.log('performing', type, args);
 
-            let loadedState = extendStateWithDefaults(game)
+            if (this.store.getters.isAnimationPerforming) {
+                return console.log('animation in progress')
+            } else {
+                const gameInstance = this.gameInstance;
+                const result = gameInstance[type].apply(gameInstance, args);
+                console.log('performed', type, args, result);
+            }
+        }
+    },
+    created() {
+        this.setupDebugHelpers()
 
-            console.log('loadedState:')
-            console.log(loadedState)
+        // const roomId = this.$router.currentRoute.params.id
+        console.log('room:', this.room.name)
+        this.gameRef = firebase.database().ref(`game/${this.room.name}`)
+        const actionsRef = firebase.database().ref(`actions/${this.room.name}`)
 
-            const thousand = initializeTable(loadedState, tableStore)
-            thousand.setCustomShufflingMethod(shuffleCards)
-            thousand.init()
+        this.gameRef.once('value', (snapshot) => {
+            const receivedState = snapshot.val();
 
-            thousand.events.addListener('phaseUpdated', () => {
-                console.log('phaseUpdated:')
-                console.log(thousand.getState())
-                gameRef.set(thousand.getState())
+            let loadedState = extendStateWithDefaults(receivedState)
+
+            if (loadedState) {
+                console.log('loadedState:')
+                console.log(loadedState)
+            }
+
+            this.gameInstance = initializeTable(loadedState, this.store)
+            this.gameInstance.init()
+
+            this.gameInstance.events.addListener('phaseUpdated', () => {
+                const state = this.gameInstance.getState();
+                console.log('phaseUpdated:', state)
+                this.sendNewGameSate(state)
             })
 
-            actionsRef.on('child_added', function(_data) {
+            actionsRef.on('child_added', (_data) => {
                 const { type, args } = _data.val();
                 _data.ref.remove();
-                if (type && args && thousand[type]) {
-                    const result = thousand[type].apply(thousand, args);
-                    console.log(type, args, result);
+
+                if (type && args && this.gameInstance[type]) {
+                    this.onActionReceived(type, args)
                 }
             });
 
-            if (!game) {
-                console.log('initialising')
+            if (!receivedState) {
+                console.log('initializing new game...')
                 const { first, second, third } = this.room
-
                 performActionsOneByOne([
-                    tryToPerformAction(() => thousand.registerPlayer(first)),
-                    tryToPerformAction(() => thousand.registerPlayer(second)),
-                    tryToPerformAction(() => thousand.registerPlayer(third))
+                    tryToPerformAction(() => this.gameInstance.registerPlayer(first)),
+                    tryToPerformAction(() => this.gameInstance.registerPlayer(second)),
+                    tryToPerformAction(() => this.gameInstance.registerPlayer(third))
                 ])
-            } else {
-                console.log('continuing')
-                console.log(thousand.getState())
             }
         })
     }
